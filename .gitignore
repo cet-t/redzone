@@ -3,3 +3,4 @@ pyenv.py
 .env
 __pycache__
 discord.py
+admins.*

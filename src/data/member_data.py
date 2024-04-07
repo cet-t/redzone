@@ -17,3 +17,6 @@ class MemberDict(TypedDict):
     rank: RANK
     id: int  # discord id
     roles: list[int]  # roles
+
+
+# example = MemberDict(name='cet colour', rank=RANK.MEMBER, id=DISCORD_ID, roles=HAS_ROLES)
