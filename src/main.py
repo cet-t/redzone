@@ -1,4 +1,6 @@
-﻿import discord
+﻿import asyncio
+import threading
+import discord
 from discord import app_commands
 import json
 import os
@@ -43,12 +45,14 @@ async def load_members(interaction: discord.Interaction):
 async def disconnect(interaction: discord.Interaction):
     if interaction.user.id != admins[0]:
         return await interaction.response.send_message('権限がありません。', ephemeral=True)
-    return await interaction.response.send_message('権限がありません。', ephemeral=True)
+    await interaction.response.send_message('10秒後にオフラインになります。', ephemeral=True)
+    await asyncio.sleep(10)
+    exit(0)
 
 
-@tree.command()
-async def add_rub_record(interaction: discord.Interaction):
-    pass
+# @tree.command()
+# async def add_rob_record(interaction: discord.Interaction):
+#     pass
 
 
 @tree.command()
@@ -60,11 +64,14 @@ async def add_member(interaction: discord.Interaction, m_name: str, m_rank: RANK
         id=m_account.id,
         roles=[role.id for role in m_account.roles]
     )
-    if not os.path.exists(filepath := f'../members_db/{m_account.id}.json'):
-        with open(filepath, 'x') as f:
-            json.dump(member_data, f, indent=4)
-        return await interaction.response.send_message(f'{m_account.mention}をメンバーに追加しました。')
-    await interaction.response.send_message('rejected', ephemeral=True)
+    try:
+        if not os.path.exists(filepath := GetPath.members(m_account.id)):
+            with open(filepath, 'x') as f:
+                json.dump(member_data, f, indent=4)
+            return await interaction.response.send_message(f'{m_account.mention}をメンバーに追加しました。')
+        await interaction.response.send_message('rejected', ephemeral=True)
+    except Exception as e:
+        await interaction.response.send_message(f'rejected:{e}', ephemeral=True)
 
 
 thread_id = None
@@ -74,16 +81,21 @@ thread_id = None
 @app_commands.describe(type='heist type')
 async def reward_calc(interaction: discord.Interaction, type: HEIST_TYPE):
     global thread_id
+    date = datetime.datetime.now().date()
+    now = datetime.datetime.now()
+    def f(item: int) -> str: return str(item).zfill(2)
+    title = f'{type.name}{f(date.year)}{f(date.month)}{f(date.day)}{
+        f(now.hour)}{f(now.minute)}'
     ch = interaction.channel
-    now = datetime.datetime.now().date()
-    title = f'{type.name}{str(now.year).zfill(2)}{str(
-        now.month).zfill(2)}{str(now.day).zfill(2)}'
+    # print('ch:', ch.id)  # type: ignore
     thread: discord.Thread = await ch.create_thread(name=title)  # type: ignore
+    print('exits:', thread is None)
+    print('thread_name:', thread.name)
+    print('thread_id:', thread.id)
     thread_id = thread.id
     await interaction.response.send_message(f'{thread.mention}:作成しました。')
     rand = random.randint(1, 512)
     await thread.send(f'入手額{rand}万円の場合{rand}と入力してください。')
-
 
 ID, AMOUNT = 0, 1
 amounts: list[tuple[int, int]] = []  # amounts[index](ID, AMOUNT)
@@ -92,16 +104,15 @@ amounts: list[tuple[int, int]] = []  # amounts[index](ID, AMOUNT)
 @bot.event
 async def on_message(message: discord.Message):
     global thread_id
-    if message.author.bot:
+    if message.author.bot or thread_id is not None:
         return
     print('thread id:', thread_id)
 
     if len(amounts) > 0 and message.content == '!calc':
+        thread_id = None
         total = 0
         for amount in amounts:
             total += amount[AMOUNT]
-        # message.guild.get_thread(thread_id).   # type: ignore
-        thread_id = None
         text = f'合計金額:{str(total)}万円\n'
         member_count = 0
         for member in message.guild.members:  # type: ignore
@@ -112,7 +123,7 @@ async def on_message(message: discord.Message):
         amounts.clear()
         return await message.channel.send(text)
 
-    if thread_id != None or message.channel.id == thread_id:
+    if thread_id is not None and message.channel.id == thread_id:
         if len(amounts) > 0:
             for amount in amounts:
                 if amount[ID] == message.author.id:
