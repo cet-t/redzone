@@ -3,12 +3,13 @@ from discord import app_commands
 import json
 import os
 import datetime
+import random
 
 from data.member_data import *
 from data.heist_data import *
 from admins import *
 
-bot = discord.Client(intents=discord.Intents.default())
+bot = discord.Client(intents=discord.Intents.all())
 tree = app_commands.CommandTree(bot)
 
 
@@ -66,21 +67,72 @@ async def add_member(interaction: discord.Interaction, m_name: str, m_rank: RANK
     await interaction.response.send_message('rejected', ephemeral=True)
 
 
+thread_id = None
+
+
 @tree.command()
 @app_commands.describe(type='heist type')
-async def housyukeisan(interaction: discord.Interaction, type: HEIST_TYPE):
+async def reward_calc(interaction: discord.Interaction, type: HEIST_TYPE):
+    global thread_id
     ch = interaction.channel
     now = datetime.datetime.now().date()
-    title = f'{type.name}{now.year}{now.month}{now.day}'
+    title = f'{type.name}{str(now.year).zfill(2)}{str(
+        now.month).zfill(2)}{str(now.day).zfill(2)}'
     thread: discord.Thread = await ch.create_thread(name=title)  # type: ignore
+    thread_id = thread.id
     await interaction.response.send_message(f'{thread.mention}:作成しました。')
-    # TODO スレッドに送られてきた数値(金額)と名前を控えつつ、数値を足して振り分ける
+    rand = random.randint(1, 512)
+    await thread.send(f'入手額{rand}万円の場合{rand}と入力してください。')
+
+
+ID, AMOUNT = 0, 1
+amounts: list[tuple[int, int]] = []  # amounts[index](ID, AMOUNT)
+
+
+@bot.event
+async def on_message(message: discord.Message):
+    global thread_id
+    if message.author.bot:
+        return
+    print('thread id:', thread_id)
+
+    if len(amounts) > 0 and message.content == '!calc':
+        total = 0
+        for amount in amounts:
+            total += amount[AMOUNT]
+        # message.guild.get_thread(thread_id).   # type: ignore
+        thread_id = None
+        text = f'合計金額:{str(total)}万円\n'
+        member_count = 0
+        for member in message.guild.members:  # type: ignore
+            if not member.bot:
+                member_count += 1
+        text += f'メンバー数: {member_count}\n'
+        text += f'1人{total/member_count}万円({total}/{member_count})\n'
+        amounts.clear()
+        return await message.channel.send(text)
+
+    if thread_id != None or message.channel.id == thread_id:
+        if len(amounts) > 0:
+            for amount in amounts:
+                if amount[ID] == message.author.id:
+                    return await message.channel.send(f'{message.author.mention}: already registerd')
+
+        try:
+            amounts.append((message.author.id, int(message.content)))
+        except Exception as e:
+            await message.channel.send(f'{message.author.mention}:{str(e)}')
+        print(amounts)
+
+
+@bot.event
+async def on_():
     pass
 
 if __name__ == '__main__':
-    for heist in heists:
-        with open(f'../heists/{str(heist['name'].name).lower()}.json', 'x') as f:
-            json.dump(heist, f, indent=4)
+    # for heist in heists:
+    # with open(f'../heists/{str(heist['name'].name).lower()}.json', 'x') as f:
+    # json.dump(heist, f, indent=4)
 
     try:
         import pyenv
