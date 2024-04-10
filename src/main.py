@@ -104,7 +104,7 @@ amounts: list[tuple[int, int]] = []  # amounts[index](ID, AMOUNT)
 @bot.event
 async def on_message(message: discord.Message):
     global thread_id
-    if message.author.bot or thread_id is not None:
+    if message.author.bot or thread_id is None:
         return
     print('thread id:', thread_id)
 
