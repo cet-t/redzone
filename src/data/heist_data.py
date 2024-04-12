@@ -1,4 +1,6 @@
-﻿from enum import Enum
+﻿from dataclasses import dataclass
+import datetime
+from enum import Enum, member
 from typing import TypedDict, Final
 
 
@@ -31,5 +33,7 @@ heists: Final[list[HeistDict]] = [
 ]
 
 
-class HeistRecord:
-    pass
+class HeistRecordDict(TypedDict):
+    date: str  # int datetime.datetime
+    members_reward: dict[int, int]  # [id, reward_amount]
+    total_amount: int
