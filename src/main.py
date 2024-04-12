@@ -1,7 +1,7 @@
 ﻿import asyncio
 import threading
 import discord
-from discord import app_commands
+from discord import Guild, app_commands
 import json
 import os
 import datetime
@@ -89,54 +89,62 @@ async def reward_calc(interaction: discord.Interaction, type: HEIST_TYPE):
     ch = interaction.channel
     # print('ch:', ch.id)  # type: ignore
     thread: discord.Thread = await ch.create_thread(name=title)  # type: ignore
-    print('exits:', thread is None)
-    print('thread_name:', thread.name)
-    print('thread_id:', thread.id)
     thread_id = thread.id
-    await interaction.response.send_message(f'{thread.mention}:作成しました。')
-    rand = random.randint(1, 512)
+    myid = 1226142783539118140
+    test = f'https://discord.com/channels/{interaction.guild_id}/{thread_id}'
+    # await interaction.response.send_message(f'{thread.mention}: 作成しました。')
+    await interaction.response.send_message(f'{test}: {test[1:]}')
+    rand = random.randint(2**5, 2**10)
     await thread.send(f'入手額{rand}万円の場合{rand}と入力してください。')
 
-ID, AMOUNT = 0, 1
-amounts: list[tuple[int, int]] = []  # amounts[index](ID, AMOUNT)
+# ID, AMOUNT = 0, 1
+# amounts: list[tuple[int, int]] = []  # amounts[index](ID, AMOUNT)
+amounts2: dict[int, int] = {}
 
 
 @bot.event
 async def on_message(message: discord.Message):
     global thread_id
-    if message.author.bot or thread_id is not None:
+    if message.author.bot or thread_id is None:
         return
     print('thread id:', thread_id)
 
-    if len(amounts) > 0 and message.content == '!calc':
+    # if len(amounts) > 0 and message.content == '!calc':
+    if amounts2.__len__() > 0 and message.content == '!calc':
         thread_id = None
         total = 0
-        for amount in amounts:
-            total += amount[AMOUNT]
-        text = f'合計金額:{str(total)}万円\n'
+        # for amount in amounts:
+        for _, amount in amounts2.items():
+            total += amount
+        text_list = [f'合計金額:{str(total)}万円\n']
         member_count = 0
         for member in message.guild.members:  # type: ignore
             if not member.bot:
                 member_count += 1
-        text += f'メンバー数: {member_count}\n'
-        text += f'1人{total/member_count}万円({total}/{member_count})\n'
-        amounts.clear()
-        return await message.channel.send(text)
+        text_list.append(f'メンバー数: {member_count}')
+        text_list.append(
+            f'1人{total//member_count}万円({total}/{member_count}) ※切捨除算')
+        # amounts.clear()
+        amounts2.clear()
+        return await message.channel.send('\n'.join(text_list))
 
     if thread_id is not None and message.channel.id == thread_id:
-        if len(amounts) > 0:
-            for amount in amounts:
-                if amount[ID] == message.author.id:
-                    return await message.channel.send(f'{message.author.mention}: already registerd')
+        # if len(amounts) > 0:
+        # for amount in amounts:
+        # if len(amounts2) > 0:
+        #     for _, amount in amounts2.items():
+        #         if amount == message.author.id:
+        #             return await message.channel.send(f'{message.author.mention}: already registerd')
 
         try:
-            amounts.append((message.author.id, int(message.content)))
+            # amounts.append((message.author.id, int(message.content)))
+            amounts2[message.author.id] = int(message.content)
         except Exception as e:
             await message.channel.send(f'{message.author.mention}:{str(e)}')
-        print(amounts)
+    print(amounts2)
 
 
-@bot.event
+@ bot.event
 async def on_():
     pass
 
@@ -153,7 +161,7 @@ if __name__ == '__main__':
         dotenv.load_dotenv()
         token = os.environ['TOKEN']
 
-    @bot.event
+    @ bot.event
     async def on_ready():
         print('ok.')
         await tree.sync()
