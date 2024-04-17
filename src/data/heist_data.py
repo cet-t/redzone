@@ -1,18 +1,18 @@
 ﻿from dataclasses import dataclass
-import datetime
-from enum import Enum, member
+from enum import Enum
 from typing import TypedDict, Final
 
 
 class HEIST_TYPE(str, Enum):
-    STORE = 'store'
-    FREECA = 'freeca'
-    JEWELRY = 'jewelry'
-    YACHT = 'yacht'
-    THERMITE = 'thermite'
-    OILRIG = 'oilrig'
-    PACIFIC = 'pacific'
-    UNION = 'union'
+    CUSTOM = "custom"
+    STORE = "store"
+    FREECA = "freeca"
+    JEWELRY = "jewelry"
+    YACHT = "yacht"
+    THERMITE = "thermite"
+    OILRIG = "oilrig"
+    PACIFIC = "pacific"
+    UNION = "union"
 
 
 class HeistDict(TypedDict):
