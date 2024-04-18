@@ -1,12 +1,13 @@
 ﻿import asyncio
+from collections import UserDict
 import discord
 from discord import app_commands
 import json
 import os
 import datetime
-import random
+from random import randint
+import re
 
-from traitlets import default
 
 from data.member_data import *
 from data.heist_data import *
@@ -87,29 +88,32 @@ async def reward(interaction: discord.Interaction, type: HEIST_TYPE):
     htype = type
     now = datetime.datetime.now()
     def f(item: int) -> str: return str(item).zfill(2)
-    title = f'{type.name}{f(now.year)}{f(now.month)}{f(now.day)}{
+    title = f'{type.name}_{f(now.year)}{f(now.month)}{f(now.day)}{
         f(now.hour)}{f(now.minute)}'
     ch = interaction.channel
     thread: discord.Thread = await ch.create_thread(  # type: ignore
         name=title,
-        type=discord.ChannelType.public_thread  # type: ignore
+        type=discord.ChannelType.public_thread,  # type: ignore
     )
     thread_id = thread.id
-    # print(f'is private: {thread.is_private()}')
     await interaction.response.send_message(f'{thread.mention}: 作成しました。')
-    rand = random.randint(2**5, 2**10)
-    await thread.send(f'入手額{rand}万円の場合{rand}と入力してください。')
-    await thread.send('全員が入力し終わったら`!calc`を送信してください。')
+    rand = randint(2**5, 2**10)
+    info_text = f'入手額が{rand}万円の場合は、{rand}と入力してください。\n\n'
+    info_text += '`!calc`: 入力された値の合計値を計算します。\n'
+    info_text += '`!del`: 入力された値を削除します。(入力した本人のみ削除可能)'
+    await thread.send(info_text)
 
 
 @tree.command()
-async def modaltest(interaction: discord.Interaction):
-    modal = discord.ui.Modal(title='test')
-    modal.add_item(item=discord.ui.Button(
-        style=discord.ButtonStyle.primary,
-        label='test button',
-    ))
-    await interaction.response.send_modal(modal)
+@app_commands.describe(records='records')
+async def del_reward(interaction: discord.Interaction, records: list[str]):
+    pass
+
+
+def delete_lump(src: str, before: list[str]):
+    for b in before:
+        src.replace(b, '')
+    return src
 
 
 @bot.event
@@ -119,40 +123,60 @@ async def on_message(message: discord.Message):
         return
     print('thread id:', thread_id)
 
-    match message.content:
-        case '!calc':
-            if len(amounts) <= 0:
-                return await message.reply('値が入力されていません。')
-            total = 0
-            for _, amount in amounts.items():
-                total += amount
-            member_count = 0
-            for member in message.guild.members:  # type: ignore
-                if not member.bot:
-                    member_count += 1
-            dst = f'合計金額: {sum(amounts.values())}万円\n'
-            dst += f'メンバー数: {member_count}\n'
-            dst += f'1人{total/member_count}万円({total}/{member_count})\n'
-            try:
-                record_data = HeistRecordDict(
-                    date=now.strftime('%Y%m%d%H%M%S'),
-                    members_reward=amounts,
-                    total_amount=total
-                )
-                with open(GetPath.records(f'{htype.name}_{record_data['date']}'), 'x') as f:
-                    json.dump(record_data, f, indent=4)
-            except:
-                pass
-            await message.channel.send(dst)
-            amounts.clear()
-            thread_id = None
-            # return
-
+    if message.content == '!data' and len(amounts) > 0:
+        return await message.reply('\n'.join([f'<@{m}>: {a}' for m, a in amounts.items()]))
+    elif message.content == '!calc':
+        if len(amounts) <= 0:
+            return await message.reply('値が入力されていません。')
+        total = 0
+        for _, amount in amounts.items():
+            total += amount
+        member_count = len(amounts)
+        # for member in message.guild.members:  # type: ignore
+        #     if not member.bot:
+        #         member_count += 1
+        dst = f'合計金額: {sum(amounts.values())}万円\n'
+        dst += f'参加者数: {member_count}\n'
+        dst += f'1人{total/member_count}万円({total}/{member_count})\n'
+        try:
+            record_data = HeistRecordDict(
+                date=now.strftime('%Y%m%d%H%M%S'),
+                members_reward=amounts,
+                total_amount=total
+            )
+            with open(GetPath.records(f'{htype.name}_{record_data['date']}'), 'x') as f:
+                json.dump(record_data, f, indent=4)
+        except:
+            pass
+        await message.channel.send(dst)
+        amounts.clear()
+        thread_id = None
+        return
+    if message.content.startswith('!del'):
+        # pattern = '!del [0-9]{18,19}'
+        # if re.match(pattern, delete_lump(message.content, ['<@', '>'])):
+        #     # await message.reply(f'match: {pattern}')
+        #     user_id = delete_lump(message.content, ['!del', ''])
+        #     if re.match('[0-9]{18, 19}', user_id):
+        #         pass
+        try:
+            user_id = message.author.id
+            for id, _ in amounts.items():
+                if id == user_id:
+                    # del amounts[user_id]
+                    amounts.__delitem__(id)
+                    return await message.reply('削除しました。')
+        except RuntimeError:
+            # 捻じ伏せる
+            pass
     if message.channel.id == thread_id:
         try:
             amounts[message.author.id] = int(message.content)
         except Exception as e:
-            await message.channel.send(f'{message.author.mention}:{str(e)}')
+            pass
+            # await message.channel.send(f'{message.author.mention}:{str(e)}')
+    else:
+        await message.reply('murikamo...T_T')
     print(amounts)
 
 
