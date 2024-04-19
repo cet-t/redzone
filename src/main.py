@@ -10,7 +10,7 @@ import re
 
 from data.member_data import *
 from data.heist_data import *
-from admins import *
+# from admins import *
 
 bot = discord.Client(intents=discord.Intents.all())
 tree = app_commands.CommandTree(bot)
@@ -42,7 +42,7 @@ async def load_members(interaction: discord.Interaction):
     for file in files:
         with open(f'../members/{file}', 'r') as f:
             member = MemberDict(json.load(f))
-            members.append(f'<@{member['id']}>: <@&{member['roles'][-1]}>')
+            members.append(f'<@{member["id"]}>: <@&{member["roles"][-1]}>')
     await interaction.response.send_message('\n'.join(members), ephemeral=True)
 
 
@@ -86,9 +86,8 @@ async def reward(interaction: discord.Interaction, type: TYPE):
     global thread_id, now, htype
     htype = type
     now = datetime.datetime.now()
-    def f(item: int) -> str: return str(item).zfill(2)
-    title = f'{type.name}_{f(now.year)}{f(now.month)}{f(now.day)}{
-        f(now.hour)}{f(now.minute)}'
+    def zf(item: int) -> str: return str(item).zfill(2)
+    title = f'{type.name}_{zf(now.year)}{zf(now.month)}{zf(now.day)}{zf(now.hour)}{zf(now.minute)}'
     ch = interaction.channel
     thread: discord.Thread = await ch.create_thread(  # type: ignore
         name=title,
@@ -104,6 +103,7 @@ async def reward(interaction: discord.Interaction, type: TYPE):
 
 
 # @tree.command()
+<<<<<<< HEAD
 # @app_commands.describe(type='type', time='time')
 # async def del_reward(interaction: discord.Interaction, type: TYPE, time: str):
 #     if not os.path.exists('../records'):
@@ -115,6 +115,11 @@ async def reward(interaction: discord.Interaction, type: TYPE):
 #             os.remove(f'../records/{file_name}.json')
 #             return await interaction.response.send_message(f'{file_name}を削除しました。')
 #     await interaction.response.send_message('damekamo')
+=======
+# @app_commands.describe(records='records')
+# async def del_reward(interaction: discord.Interaction, records: list[str]):
+#     pass
+>>>>>>> ea08f01a855e05c972484784bd5932d8b61a0ef7
 
 
 def delete_lump(src: str, before: list[str]):
@@ -151,7 +156,7 @@ async def on_message(message: discord.Message):
                 members_reward=amounts,
                 total_amount=total
             )
-            with open(GetPath.records(f'{htype.name}_{record_data['date']}'), 'x') as f:
+            with open(GetPath.records(f'{htype.name}_{record_data["date"]}'), 'x') as f:
                 json.dump(record_data, f, indent=4)
         except:
             pass
@@ -160,12 +165,6 @@ async def on_message(message: discord.Message):
         thread_id = None
         return
     if message.content.startswith('!del'):
-        # pattern = '!del [0-9]{18,19}'
-        # if re.match(pattern, delete_lump(message.content, ['<@', '>'])):
-        #     # await message.reply(f'match: {pattern}')
-        #     user_id = delete_lump(message.content, ['!del', ''])
-        #     if re.match('[0-9]{18, 19}', user_id):
-        #         pass
         try:
             user_id = message.author.id
             for id, _ in amounts.items():
