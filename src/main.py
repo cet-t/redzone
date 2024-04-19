@@ -1,5 +1,4 @@
 ﻿import asyncio
-from collections import UserDict
 import discord
 from discord import app_commands
 import json
@@ -77,13 +76,13 @@ async def add_member(interaction: discord.Interaction, m_name: str, m_rank: RANK
 
 thread_id = None
 now = datetime.datetime(2024, 4, 13, 1, 23)
-htype = HEIST_TYPE.FREECA
+htype = TYPE.FREECA
 amounts: dict[int, int] = {}
 
 
 @tree.command()
 @app_commands.describe(type='type')
-async def reward(interaction: discord.Interaction, type: HEIST_TYPE):
+async def reward(interaction: discord.Interaction, type: TYPE):
     global thread_id, now, htype
     htype = type
     now = datetime.datetime.now()
@@ -98,16 +97,24 @@ async def reward(interaction: discord.Interaction, type: HEIST_TYPE):
     thread_id = thread.id
     await interaction.response.send_message(f'{thread.mention}: 作成しました。')
     rand = randint(2**5, 2**10)
-    info_text = f'入手額が{rand}万円の場合は、{rand}と入力してください。\n\n'
-    info_text += '`!calc`: 入力された値の合計値を計算します。\n'
-    info_text += '`!del`: 入力された値を削除します。(入力した本人のみ削除可能)'
-    await thread.send(info_text)
+    info = f'入手額が{rand}万円の場合は、{rand}と入力してください。\n\n'
+    info += '`!calc`: 入力された値の合計値を計算します。\n'
+    info += '`!del`: 入力された値を削除します。(入力した本人のみ削除可能)'
+    await thread.send(info)
 
 
-@tree.command()
-@app_commands.describe(records='records')
-async def del_reward(interaction: discord.Interaction, records: list[str]):
-    pass
+# @tree.command()
+# @app_commands.describe(type='type', time='time')
+# async def del_reward(interaction: discord.Interaction, type: TYPE, time: str):
+#     if not os.path.exists('../records'):
+#         await interaction.response.send_message('記録ないかも', ephemeral=True)
+#     for file in os.listdir('../records'):
+#         fname = delete_lump(file, ['.json'])
+#         print(fname)
+#         if (file_name := f'{type.name}_{time}') == fname:
+#             os.remove(f'../records/{file_name}.json')
+#             return await interaction.response.send_message(f'{file_name}を削除しました。')
+#     await interaction.response.send_message('damekamo')
 
 
 def delete_lump(src: str, before: list[str]):
