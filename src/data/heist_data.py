@@ -13,6 +13,7 @@ class HEIST_TYPE(str, Enum):
     OILRIG = "oilrig"
     PACIFIC = "pacific"
     UNION = "union"
+    TREASURE = "treasure"
 
 
 class HeistDict(TypedDict):
