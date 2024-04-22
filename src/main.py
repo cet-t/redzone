@@ -5,12 +5,10 @@ import json
 import os
 import datetime
 from random import randint
-import re
 
 
 from data.member_data import *
 from data.heist_data import *
-# from admins import *
 
 bot = discord.Client(intents=discord.Intents.all())
 tree = app_commands.CommandTree(bot)
@@ -48,7 +46,7 @@ async def load_members(interaction: discord.Interaction):
 
 @tree.command()
 async def disconnect(interaction: discord.Interaction):
-    if interaction.user.id != admins[0]:
+    if interaction.user.id != 283584931437871104:
         return await interaction.response.send_message('権限がありません。', ephemeral=True)
     await interaction.response.send_message('10秒後にオフラインになります。', ephemeral=True)
     await asyncio.sleep(10)
@@ -88,11 +86,8 @@ async def reward(interaction: discord.Interaction, type: TYPE):
     now = datetime.datetime.now()
     def zf(item: int) -> str: return str(item).zfill(2)
     title = f'{type.name}_{zf(now.year)}{zf(now.month)}{zf(now.day)}{zf(now.hour)}{zf(now.minute)}'
-    ch = interaction.channel
-    thread: discord.Thread = await ch.create_thread(  # type: ignore
-        name=title,
-        type=discord.ChannelType.public_thread,  # type: ignore
-    )
+    channel = interaction.channel
+    thread: discord.Thread = await channel.create_thread(name=title, type=discord.ChannelType.public_thread)  # type: ignore
     thread_id = thread.id
     await interaction.response.send_message(f'{thread.mention}: 作成しました。')
     rand = randint(2**5, 2**10)
@@ -103,7 +98,6 @@ async def reward(interaction: discord.Interaction, type: TYPE):
 
 
 # @tree.command()
-<<<<<<< HEAD
 # @app_commands.describe(type='type', time='time')
 # async def del_reward(interaction: discord.Interaction, type: TYPE, time: str):
 #     if not os.path.exists('../records'):
@@ -115,11 +109,6 @@ async def reward(interaction: discord.Interaction, type: TYPE):
 #             os.remove(f'../records/{file_name}.json')
 #             return await interaction.response.send_message(f'{file_name}を削除しました。')
 #     await interaction.response.send_message('damekamo')
-=======
-# @app_commands.describe(records='records')
-# async def del_reward(interaction: discord.Interaction, records: list[str]):
-#     pass
->>>>>>> ea08f01a855e05c972484784bd5932d8b61a0ef7
 
 
 def delete_lump(src: str, before: list[str]):
@@ -140,13 +129,8 @@ async def on_message(message: discord.Message):
     elif message.content == '!calc':
         if len(amounts) <= 0:
             return await message.reply('値が入力されていません。')
-        total = 0
-        for _, amount in amounts.items():
-            total += amount
+        total = len(amounts.values())
         member_count = len(amounts)
-        # for member in message.guild.members:  # type: ignore
-        #     if not member.bot:
-        #         member_count += 1
         dst = f'合計金額: {sum(amounts.values())}万円\n'
         dst += f'参加者数: {member_count}\n'
         dst += f'1人{total/member_count}万円({total}/{member_count})\n'
@@ -169,8 +153,8 @@ async def on_message(message: discord.Message):
             user_id = message.author.id
             for id, _ in amounts.items():
                 if id == user_id:
-                    # del amounts[user_id]
-                    amounts.__delitem__(id)
+                    del amounts[user_id]
+                    # amounts.__delitem__(id)
                     return await message.reply('削除しました。')
         except RuntimeError:
             # 捻じ伏せる
