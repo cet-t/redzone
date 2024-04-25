@@ -97,20 +97,6 @@ async def reward(interaction: discord.Interaction, type: TYPE):
     await thread.send(info)
 
 
-# @tree.command()
-# @app_commands.describe(type='type', time='time')
-# async def del_reward(interaction: discord.Interaction, type: TYPE, time: str):
-#     if not os.path.exists('../records'):
-#         await interaction.response.send_message('記録ないかも', ephemeral=True)
-#     for file in os.listdir('../records'):
-#         fname = delete_lump(file, ['.json'])
-#         print(fname)
-#         if (file_name := f'{type.name}_{time}') == fname:
-#             os.remove(f'../records/{file_name}.json')
-#             return await interaction.response.send_message(f'{file_name}を削除しました。')
-#     await interaction.response.send_message('damekamo')
-
-
 def delete_lump(src: str, before: list[str]):
     for b in before:
         src.replace(b, '')
