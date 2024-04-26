@@ -1,10 +1,12 @@
 ﻿import asyncio
+import random
 import discord
 from discord import app_commands
 import json
 import os
 import datetime
 from random import randint
+# from ext import *
 
 
 from data.member_data import *
@@ -27,8 +29,17 @@ class GetPath:
 
 
 @tree.command()
-async def test(interaction: discord.Interaction):
-    await interaction.response.send_message('hello')
+async def ping(interaction: discord.Interaction):
+    await interaction.response.send_message('pong')
+
+
+@tree.command()
+@app_commands.describe(count='count')
+async def dice(interaction: discord.Interaction, count: int = 1):
+    result: list[str] = []
+    for _ in range(count):
+        result.append(f':{random.randint(0, len(['one', 'two', 'three', 'four', 'five', 'six'])-1)}:')
+    await interaction.response.send_message(str.join(' ', result))
 
 
 @tree.command()
@@ -95,12 +106,6 @@ async def reward(interaction: discord.Interaction, type: TYPE):
     info += '`!calc`: 入力された値の合計値を計算します。\n'
     info += '`!del`: 入力された値を削除します。(入力した本人のみ削除可能)'
     await thread.send(info)
-
-
-def delete_lump(src: str, before: list[str]):
-    for b in before:
-        src.replace(b, '')
-    return src
 
 
 @bot.event
