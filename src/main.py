@@ -36,9 +36,10 @@ async def ping(interaction: discord.Interaction):
 @tree.command()
 @app_commands.describe(count='count')
 async def dice(interaction: discord.Interaction, count: int = 1):
+    nums = ['one', 'two', 'three', 'four', 'five', 'six']
     result: list[str] = []
     for _ in range(count):
-        result.append(f':{random.randint(0, len(['one', 'two', 'three', 'four', 'five', 'six'])-1)}:')
+        result.append(f':{random.randint(0, len(nums)-1)}:')
     await interaction.response.send_message(str.join(' ', result))
 
 
