@@ -39,8 +39,17 @@ async def dice(interaction: discord.Interaction, count: int = 1):
     nums = ['one', 'two', 'three', 'four', 'five', 'six']
     result: list[str] = []
     for _ in range(count):
-        result.append(f':{nums[random.randint(0, len(nums)-1)]}:')
+        result.append(f':{nums[randint(0, len(nums)-1)]}:')
     await interaction.response.send_message(str.join(' ', result))
+
+
+@tree.command()
+async def nkodice(interaction: discord.Interaction):
+    pool = 'おちんこまう'
+    result = ''
+    for _ in range(len(pool)):
+        result += pool[randint(0, len(pool)-1)]
+    await interaction.response.send_message(result)
 
 
 @tree.command()
