@@ -47,7 +47,7 @@ async def dice(interaction: discord.Interaction, count: int = 1):
 async def nkodice(interaction: discord.Interaction):
     pool = 'おちんこまう'
     result = ''
-    for _ in range(len(pool)):
+    for _ in range(len('おちんちん')):
         result += pool[randint(0, len(pool)-1)]
     await interaction.response.send_message(result)
 
