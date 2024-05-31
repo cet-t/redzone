@@ -1,5 +1,6 @@
 ﻿import asyncio
 import random
+from typing import Optional
 import discord
 from discord import app_commands
 import json
@@ -11,6 +12,8 @@ from random import randint
 
 from data.member_data import *
 from data.heist_data import *
+from pyenv import channel_id
+from format2 import Format, Log
 
 bot = discord.Client(intents=discord.Intents.all())
 tree = app_commands.CommandTree(bot)
@@ -118,6 +121,48 @@ async def reward(interaction: discord.Interaction, type: TYPE):
     await thread.send(info)
 
 
+@tree.command()
+@app_commands.describe(member='member')
+async def stats(interaction: discord.Interaction, member: Optional[discord.Member] = None):
+    if len(record_files := os.listdir('../records')) <= 0:
+        await interaction.response.send_message('記録がありません。', ephemeral=True)
+    data: list[HeistRecordDict] = []
+    if member is not None:
+        for record in record_files:
+            with open(record, 'r') as f:
+                data.append(HeistRecordDict(json.load(f)))
+        pass
+    else:
+        pass
+    print(data)
+
+
+@tree.command(name='cost', description='経費精算, チームプール管理')
+@app_commands.describe(amount='金額', note='備考')
+async def cost_production(interaction: discord.Interaction, amount: int, note: Optional[str] = None):
+    if interaction.channel_id != channel_id:
+        return await interaction.response.send_message(f'<#{channel_id}>専用チャンネルで使用してください。', ephemeral=True)
+    if not os.path.exists(file_path := '../log/cost.json'):
+        return await interaction.response.send_message(f'ログファイルが存在しません。', ephemeral=True)
+    with open(file_path, 'r') as f:
+        load_data = Format(json.load(f))
+        pool, logs = load_data['pool'] + amount, load_data['logs']
+        now = datetime.datetime.now()
+        log = Log(
+            datetime=f'{now.year}{now.month}{now.day}{now.hour}',
+            user_id=interaction.user.id,
+            amount=amount,
+            note=note
+        )
+        logs.append(log)
+        load_data = Format(pool=pool, logs=logs)
+        with open(file_path, 'w') as ff:
+            json.dump(load_data, ff, indent=4)
+            message = f'{interaction.user.mention}\n金額: {format(amount, ',')}{f'\n備考:{note}' if note != None else ''}\nチームプール: {pool}'
+            colour = discord.Colour.blue() if amount > 0 else discord.Colour.brand_red()
+    await interaction.response.send_message(embed=discord.Embed(title='経費精算・チームプール管理', description=message, colour=colour))
+
+
 @bot.event
 async def on_message(message: discord.Message):
     global thread_id
@@ -174,7 +219,6 @@ async def on_message(message: discord.Message):
 if __name__ == '__main__':
     @bot.event
     async def on_ready():
-        print('ok.')
         await tree.sync()
         await bot.change_presence(
             activity=discord.Streaming(
@@ -182,6 +226,7 @@ if __name__ == '__main__':
                 url='https://twitch.tv/example'),
             status=discord.Status.do_not_disturb
         )
+        print('ok.')
 
     from core import Core
     bot_core = Core('TOKEN')
