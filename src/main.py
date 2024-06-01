@@ -12,7 +12,7 @@ from random import randint
 
 from data.member_data import *
 from data.heist_data import *
-from pyenv import channel_id
+from pyenv import channel_ids
 from format2 import Format, Log
 
 bot = discord.Client(intents=discord.Intents.all())
@@ -21,6 +21,7 @@ tree = app_commands.CommandTree(bot)
 
 class GetPath:
     MEMBERS_DIR = '../members'
+    LOG = '../log/cost.json'
 
     @staticmethod
     def members(id: int):
@@ -140,27 +141,30 @@ async def stats(interaction: discord.Interaction, member: Optional[discord.Membe
 @tree.command(name='cost', description='経費精算, チームプール管理')
 @app_commands.describe(amount='金額', note='備考')
 async def cost_production(interaction: discord.Interaction, amount: int, note: Optional[str] = None):
-    if interaction.channel_id != channel_id:
+    if interaction.channel_id != channel_ids['redzone']:
         return await interaction.response.send_message(f'<#{channel_id}>専用チャンネルで使用してください。', ephemeral=True)
     if not os.path.exists(file_path := '../log/cost.json'):
         return await interaction.response.send_message(f'ログファイルが存在しません。', ephemeral=True)
-    with open(file_path, 'r') as f:
-        load_data = Format(json.load(f))
-        pool, logs = load_data['pool'] + amount, load_data['logs']
-        now = datetime.datetime.now()
-        log = Log(
-            datetime=f'{now.year}{now.month}{now.day}{now.hour}',
-            user_id=interaction.user.id,
-            amount=amount,
-            note=note
-        )
-        logs.append(log)
-        load_data = Format(pool=pool, logs=logs)
-        with open(file_path, 'w') as ff:
-            json.dump(load_data, ff, indent=4)
-            message = f'{interaction.user.mention}\n金額: {format(amount, ',')}{f'\n備考:{note}' if note != None else ''}\nチームプール: {pool}'
-            colour = discord.Colour.blue() if amount > 0 else discord.Colour.brand_red()
-    await interaction.response.send_message(embed=discord.Embed(title='経費精算・チームプール管理', description=message, colour=colour))
+    try:    
+        with open(GetPath.LOG, 'r', encoding='utf_8_sig') as f:
+            load_data = Format(json.load(f, strict=False))
+            pool, logs = load_data['pool'] + amount, load_data['logs']
+            now = datetime.datetime.now()
+            log = Log(
+                datetime=f'{now.year}{now.month}{now.day}{now.hour}',
+                user_id=interaction.user.id,
+                amount=amount,
+                note=note
+            )
+            logs.append(log)
+            load_data = Format(pool=pool, logs=logs)
+            with open(GetPath.LOG, 'w') as ff:
+                json.dump(load_data, ff, indent=4)
+                message = f'{interaction.user.mention}'+ '\n' + f'金額: {format(amount, ",")}'+'\n'+f'備考:{note}'+'\n'+f'チームプール: {format(pool, ",")}'
+                colour = discord.Colour.blue() if amount > 0 else discord.Colour.brand_red()
+        await interaction.response.send_message(embed=discord.Embed(title='経費精算・チームプール管理', description=message, colour=colour))
+    except Exception as e:
+        await interaction.response.send_message(e, ephemeral=True)
 
 
 @bot.event
