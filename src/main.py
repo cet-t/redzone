@@ -193,18 +193,13 @@ async def cost_cancel(interaction: discord.Interaction, log_id: int):
 
         fixed_log_data = latest_log_data
 
-        # 対象のログのamoutをpoolに足す(消さない)
-        for log in logs:
-            if log.get('id') != log_id:
-                continue
-            # 現在の額から対象のログのamountを引く
-            fixed_log_data['pool'] -= log.get('amount')
-            # キャンセル済に
+        # 対象のログのamountをpoolに足す(消さない)
         for i in range(len(logs)):
             if logs[i].get('id') != log_id:
                 continue
             if logs[i].get('is_cancelled'):
                 return await interaction.response.send_message('既にキャンセルされています。', ephemeral=True)
+            # amountを引き、キャンセル済に
             fixed_log_data['pool'] -= logs[i].get('amount')
             fixed_log_data['logs'][i]['is_cancelled'] = True
 
