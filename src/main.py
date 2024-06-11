@@ -5,14 +5,14 @@ import discord
 from discord import app_commands
 import json
 import os
-import datetime
+from datetime import datetime
 from random import randint
 # from ext import *
 
 
 from data.member_data import *
 from data.heist_data import *
-from pyenv import channel_ids
+from pyenv import channel_ids, file_path
 from format2 import Format, Log
 
 bot = discord.Client(intents=discord.Intents.all())
@@ -98,7 +98,7 @@ async def add_member(interaction: discord.Interaction, m_name: str, m_rank: RANK
 
 
 thread_id = None
-now = datetime.datetime(2024, 4, 13, 1, 23)
+now = datetime(2024, 4, 13, 1, 23)
 htype = TYPE.FREECA
 amounts: dict[int, int] = {}
 
@@ -108,7 +108,7 @@ amounts: dict[int, int] = {}
 async def reward(interaction: discord.Interaction, type: TYPE):
     global thread_id, now, htype
     htype = type
-    now = datetime.datetime.now()
+    now = datetime.now()
     def zf(item: int) -> str: return str(item).zfill(2)
     title = f'{type.name}_{zf(now.year)}{zf(now.month)}{zf(now.day)}{zf(now.hour)}{zf(now.minute)}'
     channel = interaction.channel
@@ -141,30 +141,87 @@ async def stats(interaction: discord.Interaction, member: Optional[discord.Membe
 @tree.command(name='cost', description='経費精算, チームプール管理')
 @app_commands.describe(amount='金額', note='備考')
 async def cost_production(interaction: discord.Interaction, amount: int, note: Optional[str] = None):
-    if interaction.channel_id != channel_ids['redzone']:
-        return await interaction.response.send_message(f'<#{channel_id}>専用チャンネルで使用してください。', ephemeral=True)
-    if not os.path.exists(file_path := '../log/cost.json'):
+    if interaction.channel_id != channel_ids.get('redzone'):
+        return await interaction.response.send_message(f'<#{channel_ids.get('redzone')}>専用チャンネルで使用してください。', ephemeral=True)
+    if not os.path.exists(file_path):
         return await interaction.response.send_message(f'ログファイルが存在しません。', ephemeral=True)
-    try:    
-        with open(GetPath.LOG, 'r', encoding='utf_8_sig') as f:
-            load_data = Format(json.load(f, strict=False))
-            pool, logs = load_data['pool'] + amount, load_data['logs']
-            now = datetime.datetime.now()
-            log = Log(
-                datetime=f'{now.year}{now.month}{now.day}{now.hour}',
-                user_id=interaction.user.id,
-                amount=amount,
-                note=note
-            )
-            logs.append(log)
-            load_data = Format(pool=pool, logs=logs)
-            with open(GetPath.LOG, 'w') as ff:
-                json.dump(load_data, ff, indent=4)
-                message = f'{interaction.user.mention}'+ '\n' + f'金額: {format(amount, ",")}'+'\n'+f'備考:{note}'+'\n'+f'チームプール: {format(pool, ",")}'
-                colour = discord.Colour.blue() if amount > 0 else discord.Colour.brand_red()
-        await interaction.response.send_message(embed=discord.Embed(title='経費精算・チームプール管理', description=message, colour=colour))
-    except Exception as e:
-        await interaction.response.send_message(e, ephemeral=True)
+    with open(file_path, 'r') as f:
+        if (load_data := Format(json.load(f))) is None:
+            load_data = Format(pool=0, logs=[])
+        pool, logs = load_data.get('pool') + amount, load_data.get('logs')
+        log = Log(
+            id=len(logs),
+            datetime=f'{(now := datetime.now()).year}{now.month}{now.day}{now.hour}',
+            user_id=interaction.user.id,
+            amount=amount,
+            note=note,
+            is_cancelled=False
+        )
+        logs.append(log)
+        load_data = Format(pool=pool, logs=logs)
+        with open(file_path, 'w') as ff:
+            message = [
+                f'#{log.get('id')}',
+                f'金額: {format(amount, ',')}',
+                f'備考:{note}' if note != None else '',
+                f'チームプール: {format(pool, ',')}'
+            ]
+            json.dump(load_data, ff, indent=4)
+            colour = discord.Colour.blue() if amount > 0 else discord.Colour.brand_red()
+            emb = discord.Embed(title='経費精算・チームプール管理', description='\n'.join(message), colour=colour)
+    await interaction.response.send_message(embed=emb)
+
+
+def exists_log(logs: list[Log], log_id: int) -> bool:
+    for log in logs:
+        if log.get('id') == log_id:
+            return True
+    return False
+
+
+@tree.command(name='cancel', description='取り消し')
+@app_commands.describe(log_id='log_id')
+async def cost_cancel(interaction: discord.Interaction, log_id: int):
+    with open(file_path, 'r') as f:
+        if (latest_log_data := Format(json.load(f))) is None:
+            return await interaction.response.send_message('エラーが発生しました。', ephemeral=True)
+        logs = latest_log_data['logs']
+        # 無効なID(0未満ログ数以上か、存在しないID)が入力されたらリターン
+        if log_id < 0 or log_id >= len(logs) or not exists_log(logs, log_id):
+            # print(f'log_id: {log_id}\nlogs.len: {len(logs)}\nexits: {exists_log(logs, log_id)}')
+            return await interaction.response.send_message('有効なIDを入力してください。', ephemeral=True)
+
+        fixed_log_data = latest_log_data
+
+        # 対象のログのamoutをpoolに足す(消さない)
+        for log in logs:
+            if log.get('id') != log_id:
+                continue
+            # 現在の額から対象のログのamountを引く
+            fixed_log_data['pool'] -= log.get('amount')
+            # キャンセル済に
+        for i in range(len(logs)):
+            if logs[i].get('id') != log_id:
+                continue
+            if logs[i].get('is_cancelled'):
+                return await interaction.response.send_message('既にキャンセルされています。', ephemeral=True)
+            fixed_log_data['pool'] -= logs[i].get('amount')
+            fixed_log_data['logs'][i]['is_cancelled'] = True
+
+        # fo2ih34r3w
+        with open(file_path, 'w') as f1:
+            json.dump(fixed_log_data, f1, indent=4)
+        message = [
+            f'`#{log_id}` ログを取り消しました。',
+            '',
+            f'チームプール: {format(fixed_log_data.get('pool'), ',')}'
+        ]
+        emb = discord.Embed(
+            title='Logs cancelled',
+            description='\n'.join(message),
+            colour=discord.Colour.light_gray()
+        )
+        await interaction.response.send_message(embed=emb)
 
 
 @bot.event
