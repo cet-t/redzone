@@ -142,7 +142,7 @@ async def stats(interaction: discord.Interaction, member: Optional[discord.Membe
 @app_commands.describe(amount='金額', note='備考')
 async def cost_production(interaction: discord.Interaction, amount: int, note: Optional[str] = None):
     if interaction.channel_id != channel_ids.get('redzone'):
-        return await interaction.response.send_message(f'<#{channel_ids.get('redzone')}>専用チャンネルで使用してください。', ephemeral=True)
+        return await interaction.response.send_message(f'<#{channel_ids.get("redzone")}>専用チャンネルで使用してください。', ephemeral=True)
     if not os.path.exists(file_path):
         return await interaction.response.send_message(f'ログファイルが存在しません。', ephemeral=True)
     with open(file_path, 'r') as f:
@@ -161,10 +161,10 @@ async def cost_production(interaction: discord.Interaction, amount: int, note: O
         load_data = Format(pool=pool, logs=logs)
         with open(file_path, 'w') as ff:
             message = [
-                f'#{log.get('id')}',
-                f'金額: {format(amount, ',')}',
+                f'#{log.get("id")}',
+                f'金額: {format(amount, ",")}',
                 f'備考:{note}' if note != None else '',
-                f'チームプール: {format(pool, ',')}'
+                f'チームプール: {format(pool, ",")}'
             ]
             json.dump(load_data, ff, indent=4)
             colour = discord.Colour.blue() if amount > 0 else discord.Colour.brand_red()
@@ -214,7 +214,7 @@ async def cost_cancel(interaction: discord.Interaction, log_id: int):
         message = [
             f'`#{log_id}` ログを取り消しました。',
             '',
-            f'チームプール: {format(fixed_log_data.get('pool'), ',')}'
+            f'チームプール: {format(fixed_log_data.get("pool"), ",")}'
         ]
         emb = discord.Embed(
             title='Logs cancelled',
