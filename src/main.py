@@ -203,7 +203,6 @@ async def cost_cancel(interaction: discord.Interaction, log_id: int):
             fixed_log_data['pool'] -= logs[i].get('amount')
             fixed_log_data['logs'][i]['is_cancelled'] = True
 
-        # fo2ih34r3w
         with open(file_path, 'w') as f1:
             json.dump(fixed_log_data, f1, indent=4)
         message = [
