@@ -1,5 +1,4 @@
 ﻿import asyncio
-import random
 from typing import Optional
 import discord
 from discord import app_commands
@@ -7,13 +6,13 @@ import json
 import os
 from datetime import datetime
 from random import randint
-# from ext import *
 
 
 from data.member_data import *
 from data.heist_data import *
 from pyenv import channel_ids, file_path
 from format2 import Format, Log
+import logger
 
 bot = discord.Client(intents=discord.Intents.all())
 tree = app_commands.CommandTree(bot)
@@ -139,7 +138,7 @@ async def stats(interaction: discord.Interaction, member: Optional[discord.Membe
 
 
 @tree.command(name='cost', description='経費精算, チームプール管理')
-@app_commands.describe(amount='金額', note='備考')
+@app_commands.describe(amount='金額', note='支払内容')
 async def cost_production(interaction: discord.Interaction, amount: int, note: Optional[str] = None):
     if interaction.channel_id != channel_ids.get('redzone'):
         return await interaction.response.send_message(f'<#{channel_ids.get("redzone")}>専用チャンネルで使用してください。', ephemeral=True)
@@ -151,7 +150,7 @@ async def cost_production(interaction: discord.Interaction, amount: int, note: O
         pool, logs = load_data.get('pool') + amount, load_data.get('logs')
         log = Log(
             id=len(logs),
-            datetime=f'{(now := datetime.now()).year}{now.month}{now.day}{now.hour}',
+            datetime=datetime.now().isoformat(),
             user_id=interaction.user.id,
             amount=amount,
             note=note,
@@ -161,14 +160,14 @@ async def cost_production(interaction: discord.Interaction, amount: int, note: O
         load_data = Format(pool=pool, logs=logs)
         with open(file_path, 'w') as ff:
             message = [
-                f'#{log.get("id")}',
                 f'金額: {format(amount, ",")}',
-                f'備考:{note}' if note != None else '',
+                f'支払内容:{note}' if note != None else '',
                 f'チームプール: {format(pool, ",")}'
             ]
             json.dump(load_data, ff, indent=4)
             colour = discord.Colour.blue() if amount > 0 else discord.Colour.brand_red()
-            emb = discord.Embed(title='経費精算・チームプール管理', description='\n'.join(message), colour=colour)
+            emb = discord.Embed(title=f'`#{log.get('id')}`', description='\n'.join(message), colour=colour)
+            emb.set_footer(text='経費精算・チームプール管理')
     await interaction.response.send_message(embed=emb)
 
 
@@ -181,21 +180,23 @@ def exists_log(logs: list[Log], log_id: int) -> bool:
 
 @tree.command(name='cancel', description='取り消し')
 @app_commands.describe(log_id='log_id')
-async def cost_cancel(interaction: discord.Interaction, log_id: int):
+async def cost_cancel(interaction: discord.Interaction, id: int):
     with open(file_path, 'r') as f:
+        # ログファイルの読み込み失敗
         if (latest_log_data := Format(json.load(f))) is None:
             return await interaction.response.send_message('エラーが発生しました。', ephemeral=True)
+
         logs = latest_log_data['logs']
-        # 無効なID(0未満ログ数以上か、存在しないID)が入力されたらリターン
-        if log_id < 0 or log_id >= len(logs) or not exists_log(logs, log_id):
-            # print(f'log_id: {log_id}\nlogs.len: {len(logs)}\nexits: {exists_log(logs, log_id)}')
-            return await interaction.response.send_message('有効なIDを入力してください。', ephemeral=True)
+
+        # 無効なID(0未満・ログ数以上、存在しないID)が入力されたらリターン
+        if id < 0 or id >= len(logs) or not exists_log(logs, id):
+            return await interaction.response.send_message(logger.error(f'{id} is invalid ID.'), ephemeral=True)
 
         fixed_log_data = latest_log_data
 
         # 対象のログのamountをpoolに足す(消さない)
         for i in range(len(logs)):
-            if logs[i].get('id') != log_id:
+            if logs[i].get('id') != id:
                 continue
             if logs[i].get('is_cancelled'):
                 return await interaction.response.send_message('既にキャンセルされています。', ephemeral=True)
@@ -206,7 +207,7 @@ async def cost_cancel(interaction: discord.Interaction, log_id: int):
         with open(file_path, 'w') as f1:
             json.dump(fixed_log_data, f1, indent=4)
         message = [
-            f'`#{log_id}` ログを取り消しました。',
+            f'`#{id}` ログを取り消しました。',
             '',
             f'チームプール: {format(fixed_log_data.get("pool"), ",")}'
         ]
@@ -215,6 +216,7 @@ async def cost_cancel(interaction: discord.Interaction, log_id: int):
             description='\n'.join(message),
             colour=discord.Colour.light_gray()
         )
+        emb.set_footer(text='経費精算・チームプール管理')
         await interaction.response.send_message(embed=emb)
 
 
