@@ -1,5 +1,5 @@
 {
-    "pool": 527103567,
+    "pool": 568748526,
     "logs": [
         {
             "id": 0,
@@ -382,6 +382,46 @@
             "datetime": "202461020",
             "user_id": 421317690418790409,
             "amount": -3690000,
+            "note": null,
+            "is_cancelled": false
+        },
+        {
+            "id": 48,
+            "datetime": "202461123",
+            "user_id": 283584931437871104,
+            "amount": 100,
+            "note": null,
+            "is_cancelled": true
+        },
+        {
+            "id": 49,
+            "datetime": "202461123",
+            "user_id": 283584931437871104,
+            "amount": 100,
+            "note": "\u4e0d\u5177\u5408 \u8abf\u6574\u7528",
+            "is_cancelled": false
+        },
+        {
+            "id": 50,
+            "datetime": "202461219",
+            "user_id": 421317690418790409,
+            "amount": 22191600,
+            "note": null,
+            "is_cancelled": false
+        },
+        {
+            "id": 51,
+            "datetime": "202461219",
+            "user_id": 421317690418790409,
+            "amount": 6000000,
+            "note": null,
+            "is_cancelled": false
+        },
+        {
+            "id": 52,
+            "datetime": "202461220",
+            "user_id": 421317690418790409,
+            "amount": 13453359,
             "note": null,
             "is_cancelled": false
         }
