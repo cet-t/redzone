@@ -179,7 +179,7 @@ def exists_log(logs: list[Log], log_id: int) -> bool:
 
 
 @tree.command(name='cancel', description='取り消し')
-@app_commands.describe(log_id='log_id')
+@app_commands.describe(id='log_id')
 async def cost_cancel(interaction: discord.Interaction, id: int):
     with open(file_path, 'r') as f:
         # ログファイルの読み込み失敗
