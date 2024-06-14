@@ -456,6 +456,22 @@
             "amount": 2000000,
             "note": "\u5ba2\u8239",
             "is_cancelled": false
+        },
+        {
+            "id": 57,
+            "datetime": "2024-06-15T01:37:40.891500",
+            "user_id": 283584931437871104,
+            "amount": 0,
+            "note": "test",
+            "is_cancelled": true
+        },
+        {
+            "id": 58,
+            "datetime": "2024-06-15T01:38:43.233103",
+            "user_id": 283584931437871104,
+            "amount": 0,
+            "note": "test",
+            "is_cancelled": true
         }
     ]
 }

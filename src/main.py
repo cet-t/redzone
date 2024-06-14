@@ -68,7 +68,7 @@ async def disconnect(interaction: discord.Interaction):
 @app_commands.describe(amount='金額', note='支払内容')
 async def cost_production(interaction: discord.Interaction, amount: int, note: Optional[str] = None):
     # 専用チャンネル外で使用
-    if not interaction.channel_id in channel_ids:
+    if interaction.channel_id != channel_ids.get('redzone'):
         return await interaction.response.send_message(f'<#{channel_ids.get("redzone")}>専用チャンネルで使用してください。', ephemeral=True)
     # ファイルが存在しない
     if not os.path.exists(file_path):
@@ -96,11 +96,11 @@ async def cost_production(interaction: discord.Interaction, amount: int, note: O
                 description='精算しました。',
                 colour=discord.Colour.blue() if amount > 0 else discord.Colour.brand_red()
             )
-            emb.add_field(name='金額', value=format(amount, ','))
+            emb.add_field(name='金額', value=format(amount, ','), inline=False)
             if note != None:
-                emb.add_field(name='支払内容', value=note)
-            emb.add_field(name='チームプール', value=format(pool, ','))
-            emb.set_footer(text='🔥REDZONE🔥 BOT')
+                emb.add_field(name='支払内容', value=note, inline=False)
+            emb.add_field(name='チームプール', value=format(pool, ','), inline=False)
+            emb.set_footer(text='🔥REDZONE🔥')
     await interaction.response.send_message(embed=emb)
 
 
@@ -142,8 +142,8 @@ async def cost_cancel(interaction: discord.Interaction, id: int):
             description='キャンセルしました。',
             colour=discord.Colour.light_gray()
         )
-        emb.add_field(name='チームプール', value=format(fixed_log_data.get('pool'), ','))
-        emb.set_footer(text='🔥REDZONE🔥 BOT')
+        emb.add_field(name='チームプール', value=format(fixed_log_data.get('pool'), ','), inline=False)
+        emb.set_footer(text='🔥REDZONE🔥')
         await interaction.response.send_message(embed=emb)
 
 
