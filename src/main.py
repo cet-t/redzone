@@ -166,7 +166,7 @@ async def cost_production(interaction: discord.Interaction, amount: int, note: O
             ]
             json.dump(load_data, ff, indent=4)
             colour = discord.Colour.blue() if amount > 0 else discord.Colour.brand_red()
-            emb = discord.Embed(title=f'`#{log.get('id')}`', description='\n'.join(message), colour=colour)
+            emb = discord.Embed(title=f'`#{log.get("id")}`', description='\n'.join(message), colour=colour)
             emb.set_footer(text='経費精算・チームプール管理')
     await interaction.response.send_message(embed=emb)
 
