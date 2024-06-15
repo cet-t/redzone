@@ -143,7 +143,7 @@ async def cost_cancel(interaction: discord.Interaction, id: int):
         with open(file_path, 'w') as f1:
             json.dump(fixed_log_data, f1, indent=4)
         emb = discord.Embed(
-            title=f'{logger.code_block("#{id}")} 取消',
+            title=f'{logger.code_block("<#{id}>")} 取消',
             description='',
             colour=discord.Colour.light_gray()
         )
