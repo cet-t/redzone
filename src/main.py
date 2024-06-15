@@ -69,7 +69,7 @@ async def disconnect(interaction: discord.Interaction):
 async def cost_production(interaction: discord.Interaction, amount: int, note: Optional[str] = None):
     # 専用チャンネル外で使用
     if interaction.channel_id != channel_ids.get('redzone'):
-        return await interaction.response.send_message(f'<#{channel_ids.get("redzone")}>専用チャンネルで使用してください。', ephemeral=True)
+        return await interaction.response.send_message(f'<#{channel_ids.get("redzone")}>で使用してください。', ephemeral=True)
     # ファイルが存在しない
     if not os.path.exists(file_path):
         return await interaction.response.send_message(f'ログファイルが存在しません。', ephemeral=True)
@@ -92,19 +92,19 @@ async def cost_production(interaction: discord.Interaction, amount: int, note: O
         with open(file_path, 'w') as ff:
             json.dump(load_data, ff, indent=4)
             emb = discord.Embed(
-                title=f'`#{log.get("id")}`',
-                description='精算しました。',
+                title=f'`#{log.get("id")}` 精算',
+                description='',
                 colour=discord.Colour.blue() if amount > 0 else discord.Colour.brand_red()
             )
-            emb.add_field(name='金額', value=format(amount, ','), inline=False)
+            emb.add_field(name='金額', value=logger.code_block(format(amount, ',')), inline=False)
             if note != None:
                 emb.add_field(name='支払内容', value=note, inline=False)
-            emb.add_field(name='チームプール', value=format(pool, ','), inline=False)
+            emb.add_field(name='チームプール', value=logger.code_block(format(pool, ',')), inline=False)
             emb.set_footer(text='🔥REDZONE🔥')
     await interaction.response.send_message(embed=emb)
 
 
-@tree.command(name='cancel', description='取り消し')
+@tree.command(name='cancel', description='取消')
 @app_commands.describe(id='log_id')
 async def cost_cancel(interaction: discord.Interaction, id: int):
     with open(file_path, 'r') as f:
@@ -138,11 +138,11 @@ async def cost_cancel(interaction: discord.Interaction, id: int):
         with open(file_path, 'w') as f1:
             json.dump(fixed_log_data, f1, indent=4)
         emb = discord.Embed(
-            title=f'`#{id}`',
-            description='キャンセルしました。',
+            title=f'{logger.code_block("#{id}")} 取消',
+            description='',
             colour=discord.Colour.light_gray()
         )
-        emb.add_field(name='チームプール', value=format(fixed_log_data.get('pool'), ','), inline=False)
+        emb.add_field(name='チームプール', value=logger.code_block(format(fixed_log_data.get('pool'), ',')), inline=False)
         emb.set_footer(text='🔥REDZONE🔥')
         await interaction.response.send_message(embed=emb)
 
