@@ -68,11 +68,13 @@ async def disconnect(interaction: discord.Interaction):
 @app_commands.describe(amount='金額', note='支払内容')
 async def cost_production(interaction: discord.Interaction, amount: int, note: Optional[str] = None):
     # 専用チャンネル外で使用
-    if interaction.channel_id != channel_ids.get('redzone'):
-        return await interaction.response.send_message(f'<#{channel_ids.get("redzone")}>で使用してください。', ephemeral=True)
+    if not interaction.channel_id in channel_ids.values():
+        # return await interaction.response.send_message(f'<#{channel_ids.get("redzone")}>で使用してください。', ephemeral=True)
+        return await interaction.response.send_message(embed=logger.warn_embed(f'<#{channel_ids.get("redzone")}>で使用してください。'), ephemeral=True)
     # ファイルが存在しない
     if not os.path.exists(file_path):
-        return await interaction.response.send_message(f'ログファイルが存在しません。', ephemeral=True)
+        # return await interaction.response.send_message(f'ログファイルが存在しません。', ephemeral=True)
+        return await interaction.response.send_message(embed=logger.error_embed(f'ログファイルが存在しません。'), ephemeral=True)
 
     with open(file_path, 'r') as f:
         if (load_data := Format(json.load(f))) is None:
@@ -107,6 +109,9 @@ async def cost_production(interaction: discord.Interaction, amount: int, note: O
 @tree.command(name='cancel', description='取消')
 @app_commands.describe(id='log_id')
 async def cost_cancel(interaction: discord.Interaction, id: int):
+    if not interaction.channel_id in channel_ids.values():
+        # return await interaction.response.send_message(f'<#{channel_ids.get("redzone")}>で使用してください。', ephemeral=True)
+        return await interaction.response.send_message(embed=logger.warn_embed(f'<#{channel_ids.get("redzone")}>で使用してください。'), ephemeral=True)
     with open(file_path, 'r') as f:
         # ログファイルの読み込み失敗
         if (latest_log_data := Format(json.load(f))) is None:
