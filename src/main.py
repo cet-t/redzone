@@ -96,7 +96,7 @@ async def cost_production(interaction: discord.Interaction, amount: int, note: O
             emb = discord.Embed(
                 title=f'`#{log.get("id")}` 精算',
                 description='',
-                colour=discord.Colour.blue() if amount > 0 else discord.Colour.brand_red()
+                colour=discord.Colour.blue() if amount >= 0 else discord.Colour.brand_red()
             )
             emb.add_field(name='金額', value=logger.code_block(format(amount, ',')), inline=False)
             if note != None:
