@@ -1,5 +1,5 @@
 {
-    "pool": 887341290,
+    "pool": 837814290,
     "logs": [
         {
             "id": 0,
@@ -1039,6 +1039,22 @@
             "user_id": 421317690418790409,
             "amount": 25000000,
             "note": "7 pool",
+            "is_cancelled": false
+        },
+        {
+            "id": 130,
+            "datetime": "2024-07-07T22:42:34.191349",
+            "user_id": 421317690418790409,
+            "amount": -45927000,
+            "note": "\u30bf\u30af\u30c6\u30a3\u30ab\u30eb68\u4e01",
+            "is_cancelled": false
+        },
+        {
+            "id": 131,
+            "datetime": "2024-07-07T22:47:43.078496",
+            "user_id": 421317690418790409,
+            "amount": -3600000,
+            "note": "ifak",
             "is_cancelled": false
         }
     ]

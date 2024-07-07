@@ -100,7 +100,7 @@ async def cost_production(interaction: discord.Interaction, amount: int, note: O
             )
             emb.add_field(name='金額', value=utility.code_block(format(amount, ',')), inline=False)
             if note != None:
-                emb.add_field(name='支払内容', value=note, inline=False)
+                emb.add_field(name='支払内容', value=utility.code_block(note), inline=False)
             emb.add_field(name='チームプール', value=utility.code_block(format(pool, ',')), inline=False)
             emb.set_footer(text='🔥REDZONE🔥')
     await interaction.response.send_message(embed=emb)
@@ -126,7 +126,7 @@ async def cost_cancel(interaction: discord.Interaction, id: int):
             return False
 
         # 無効なID(0未満・ログ数以上、存在しないID)が入力されたらリターン
-        if id < 0 or id >= len(logs) or not exists_log(logs, id):
+        if len(logs) <= id < 0 or not exists_log(logs, id):
             return await interaction.response.send_message(utility.error(f'{id} is invalid ID.'), ephemeral=True)
 
         fixed_log_data = latest_log_data
