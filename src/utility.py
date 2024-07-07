@@ -8,6 +8,9 @@ def error(issue: str):
 def code_block(text: str):
     return f'```{text}```'
 
+def inline_code_block(text: str):
+    return f'`{text}`'
+
 
 def error_embed(description: str):
     embed = discord.Embed(
