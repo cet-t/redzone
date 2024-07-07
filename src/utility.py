@@ -6,7 +6,7 @@ def error(issue: str):
 
 
 def code_block(text: str):
-    return f'`{text}`'
+    return f'```{text}```'
 
 
 def error_embed(description: str):

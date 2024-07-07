@@ -12,7 +12,7 @@ from data.member_data import *
 from data.heist_data import *
 from pyenv import channel_ids, file_path
 from format2 import Format, Log
-import logger
+import utility
 
 bot = discord.Client(intents=discord.Intents.all())
 tree = app_commands.CommandTree(bot)
@@ -70,11 +70,11 @@ async def cost_production(interaction: discord.Interaction, amount: int, note: O
     # 専用チャンネル外で使用
     if not interaction.channel_id in channel_ids.values():
         # return await interaction.response.send_message(f'<#{channel_ids.get("redzone")}>で使用してください。', ephemeral=True)
-        return await interaction.response.send_message(embed=logger.warn_embed(f'<#{channel_ids.get("redzone")}>で使用してください。'), ephemeral=True)
+        return await interaction.response.send_message(embed=utility.warn_embed(f'<#{channel_ids.get("redzone")}>で使用してください。'), ephemeral=True)
     # ファイルが存在しない
     if not os.path.exists(file_path):
         # return await interaction.response.send_message(f'ログファイルが存在しません。', ephemeral=True)
-        return await interaction.response.send_message(embed=logger.error_embed(f'ログファイルが存在しません。'), ephemeral=True)
+        return await interaction.response.send_message(embed=utility.error_embed(f'ログファイルが存在しません。'), ephemeral=True)
 
     with open(file_path, 'r') as f:
         if (load_data := Format(json.load(f))) is None:
@@ -98,10 +98,10 @@ async def cost_production(interaction: discord.Interaction, amount: int, note: O
                 description='',
                 colour=discord.Colour.blue() if amount >= 0 else discord.Colour.brand_red()
             )
-            emb.add_field(name='金額', value=logger.code_block(format(amount, ',')), inline=False)
+            emb.add_field(name='金額', value=utility.code_block(format(amount, ',')), inline=False)
             if note != None:
                 emb.add_field(name='支払内容', value=note, inline=False)
-            emb.add_field(name='チームプール', value=logger.code_block(format(pool, ',')), inline=False)
+            emb.add_field(name='チームプール', value=utility.code_block(format(pool, ',')), inline=False)
             emb.set_footer(text='🔥REDZONE🔥')
     await interaction.response.send_message(embed=emb)
 
@@ -111,7 +111,7 @@ async def cost_production(interaction: discord.Interaction, amount: int, note: O
 async def cost_cancel(interaction: discord.Interaction, id: int):
     if not interaction.channel_id in channel_ids.values():
         # return await interaction.response.send_message(f'<#{channel_ids.get("redzone")}>で使用してください。', ephemeral=True)
-        return await interaction.response.send_message(embed=logger.warn_embed(f'<#{channel_ids.get("redzone")}>で使用してください。'), ephemeral=True)
+        return await interaction.response.send_message(embed=utility.warn_embed(f'<#{channel_ids.get("redzone")}>で使用してください。'), ephemeral=True)
     with open(file_path, 'r') as f:
         # ログファイルの読み込み失敗
         if (latest_log_data := Format(json.load(f))) is None:
@@ -127,7 +127,7 @@ async def cost_cancel(interaction: discord.Interaction, id: int):
 
         # 無効なID(0未満・ログ数以上、存在しないID)が入力されたらリターン
         if id < 0 or id >= len(logs) or not exists_log(logs, id):
-            return await interaction.response.send_message(logger.error(f'{id} is invalid ID.'), ephemeral=True)
+            return await interaction.response.send_message(utility.error(f'{id} is invalid ID.'), ephemeral=True)
 
         fixed_log_data = latest_log_data
 
@@ -143,11 +143,11 @@ async def cost_cancel(interaction: discord.Interaction, id: int):
         with open(file_path, 'w') as f1:
             json.dump(fixed_log_data, f1, indent=4)
         emb = discord.Embed(
-            title=f'{logger.code_block(f"#{id}")} 取消',
+            title=f'{utility.code_block(f"#{id}")} 取消',
             description='',
             colour=discord.Colour.light_gray()
         )
-        emb.add_field(name='チームプール', value=logger.code_block(format(fixed_log_data.get('pool'), ',')), inline=False)
+        emb.add_field(name='チームプール', value=utility.code_block(format(fixed_log_data.get('pool'), ',')), inline=False)
         emb.set_footer(text='🔥REDZONE🔥')
         await interaction.response.send_message(embed=emb)
 
