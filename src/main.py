@@ -106,24 +106,25 @@ async def cost_production(interaction: discord.Interaction, amount: int, note: O
     await interaction.response.send_message(embed=emb)
 
 
+def exists_log(logs: list[Log], log_id: int) -> bool:
+    for log in logs:
+        if log.get('id') == log_id:
+            return True
+    return False
+
+
 @tree.command(name='cancel', description='取消')
 @app_commands.describe(id='log_id')
 async def cost_cancel(interaction: discord.Interaction, id: int):
     if not interaction.channel_id in channel_ids.values():
-        # return await interaction.response.send_message(f'<#{channel_ids.get("redzone")}>で使用してください。', ephemeral=True)
         return await interaction.response.send_message(embed=utility.warn_embed(f'<#{channel_ids.get("redzone")}>で使用してください。'), ephemeral=True)
+
     with open(file_path, 'r') as f:
         # ログファイルの読み込み失敗
         if (latest_log_data := Format(json.load(f))) is None:
             return await interaction.response.send_message('ファイルの読み込みに失敗しました。', ephemeral=True)
 
         logs = latest_log_data.get('logs')
-
-        def exists_log(logs: list[Log], log_id: int) -> bool:
-            for log in logs:
-                if log.get('id') == log_id:
-                    return True
-            return False
 
         # 無効なID(0未満・ログ数以上、存在しないID)が入力されたらリターン
         if len(logs) <= id < 0 or not exists_log(logs, id):
@@ -162,16 +163,11 @@ if __name__ == '__main__':
     async def on_ready():
         await tree.sync()
         await bot.change_presence(
-            activity=discord.Streaming(
-                name='CCGTA',
-                url='https://twitch.tv/example'),
-            status=discord.Status.do_not_disturb
+            activity=discord.Streaming(name='CCGTA', url='https://twitch.tv/example'),
+            status=discord.Status.online
         )
         print('ok.')
 
     from core import Core
-    bot_core = Core('TOKEN')
-    if bot_core.load_environ():
-        bot.run(bot_core.token)
-    else:
-        exit(-1)
+    core = Core('TOKEN')
+    bot.run(core.token) if core.load_environ() else exit(-1)
