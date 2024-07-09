@@ -1056,6 +1056,14 @@
             "amount": -3600000,
             "note": "ifak",
             "is_cancelled": false
+        },
+        {
+            "id": 132,
+            "datetime": "2024-07-07T23:00:08.694568",
+            "user_id": 283584931437871104,
+            "amount": 10,
+            "note": "test\u30c6\u30b9\u30c8",
+            "is_cancelled": true
         }
     ]
 }
