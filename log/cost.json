@@ -1,5 +1,5 @@
 {
-    "pool": 857433156,
+    "pool": 876551756,
     "logs": [
         {
             "id": 0,
@@ -1071,6 +1071,14 @@
             "user_id": 421317690418790409,
             "amount": 19618866,
             "note": "\u98db\u884c\u5834",
+            "is_cancelled": false
+        },
+        {
+            "id": 134,
+            "datetime": "2024-07-11T04:14:30.125485",
+            "user_id": 277781838062288896,
+            "amount": 19118600,
+            "note": "\u30aa\u30a4\u30eb\u30ea\u30b0",
             "is_cancelled": false
         }
     ]
