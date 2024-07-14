@@ -80,12 +80,7 @@ async def cost_production(interaction: discord.Interaction, amount: int, note: O
             return await interaction.response.send_message('ファイルを読み込めませんでした。', ephemeral=True)
 
         pool, logs = load_data.get(LogKey.POOL), load_data.get(LogKey.LOGS)
-
-        is_boss = interaction.user.id == user_ids.get('boss')
-
-        # ボス
-        if interaction.user.id == user_ids.get('boss'):
-            pool += amount
+        pool += amount
         log = LogDataDict(
             id=len(logs),
             datetime=datetime.now().isoformat(),
