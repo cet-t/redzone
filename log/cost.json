@@ -1176,6 +1176,26 @@
             "amount": 25000000,
             "note": "\u30d7\u30fc\u30eb\u91d1",
             "is_cancelled": false
+        },
+        {
+            "id": 147,
+            "datetime": "2024-07-14T16:38:40.903364",
+            "user_id": 283584931437871104,
+            "amount": 0,
+            "note": "test",
+            "is_cancelled": true,
+            "is_pending": false,
+            "message_id": 1261949978650087484
+        },
+        {
+            "id": 148,
+            "datetime": "2024-07-14T16:57:26.480822",
+            "user_id": 277781838062288896,
+            "amount": 1,
+            "note": "\u7df4\u7fd2",
+            "is_cancelled": true,
+            "is_pending": true,
+            "message_id": 1261954699557474355
         }
     ]
 }
