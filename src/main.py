@@ -100,7 +100,7 @@ async def cost_production(interaction: discord.Interaction, amount: int, note: O
         with open(file_path, 'w') as ff:
             json.dump(load_data, ff, indent=4)
             emb = discord.Embed(
-                title=utility.inline_code_block(f"#{log.get(LogDataKey.ID)}")+('' if is_boss else 'Pending...'),
+                title=utility.inline_code_block(f'#{log.get("id")}')+' 精算',
                 description='',
                 color=discord.Color.blue() if amount >= 0 else discord.Color.brand_red()
             )
