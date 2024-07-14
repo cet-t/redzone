@@ -1,4 +1,5 @@
 ﻿import asyncio
+from collections import UserDict
 from typing import Optional
 import discord
 from discord import app_commands
@@ -10,8 +11,8 @@ from random import randint
 
 from data.member_data import *
 from data.heist_data import *
-from pyenv import channel_ids, file_path
-from format2 import Format, Log
+from pyenv import channel_ids, file_path, user_ids
+from format2 import LogDict, LogDataDict, LogDataKey, LogKey
 import utility
 
 bot = discord.Client(intents=discord.Intents.all())
@@ -69,28 +70,33 @@ async def disconnect(interaction: discord.Interaction):
 async def cost_production(interaction: discord.Interaction, amount: int, note: Optional[str] = None):
     # 専用チャンネル外で使用
     if not interaction.channel_id in channel_ids.values():
-        # return await interaction.response.send_message(f'<#{channel_ids.get("redzone")}>で使用してください。', ephemeral=True)
         return await interaction.response.send_message(embed=utility.warn_embed(f'<#{channel_ids.get("redzone")}>で使用してください。'), ephemeral=True)
     # ファイルが存在しない
     if not os.path.exists(file_path):
-        # return await interaction.response.send_message(f'ログファイルが存在しません。', ephemeral=True)
         return await interaction.response.send_message(embed=utility.error_embed(f'ログファイルが存在しません。'), ephemeral=True)
 
     with open(file_path, 'r') as f:
-        if (load_data := Format(json.load(f))) is None:
-            # load_data = Format(pool=0, logs=[])
+        if (load_data := LogDict(json.load(f))) is None:
             return await interaction.response.send_message('ファイルを読み込めませんでした。', ephemeral=True)
-        pool, logs = load_data.get('pool') + amount, load_data.get('logs')
-        log = Log(
+
+        pool, logs = load_data.get(LogKey.POOL), load_data.get(LogKey.LOGS)
+
+        is_boss = interaction.user.id == user_ids.get('boss')
+
+        # ボス
+        if interaction.user.id == user_ids.get('boss'):
+            pool += amount
+        log = LogDataDict(
             id=len(logs),
             datetime=datetime.now().isoformat(),
             user_id=interaction.user.id,
             amount=amount,
             note=note,
-            is_cancelled=False
+            is_cancelled=False,
+            is_pending=not is_boss
         )
         logs.append(log)
-        load_data = Format(pool=pool, logs=logs)
+        load_data = LogDict(pool=pool, logs=logs)
         with open(file_path, 'w') as ff:
             json.dump(load_data, ff, indent=4)
             emb = discord.Embed(
@@ -103,12 +109,12 @@ async def cost_production(interaction: discord.Interaction, amount: int, note: O
                 emb.add_field(name='支払内容', value=utility.code_block(note), inline=False)
             emb.add_field(name='チームプール', value=utility.code_block(format(pool, ',')), inline=False)
             emb.set_footer(text='🔥REDZONE🔥')
-    await interaction.response.send_message(embed=emb)
+            await interaction.response.send_message(embed=emb)
 
 
-def exists_log(logs: list[Log], log_id: int) -> bool:
+def exists_log(logs: list[LogDataDict], log_id: int) -> bool:
     for log in logs:
-        if log.get('id') == log_id:
+        if log.get(LogDataKey.ID) == log_id:
             return True
     return False
 
@@ -121,7 +127,7 @@ async def cost_cancel(interaction: discord.Interaction, id: int):
 
     with open(file_path, 'r') as f:
         # ログファイルの読み込み失敗
-        if (latest_log_data := Format(json.load(f))) is None:
+        if (latest_log_data := LogDict(json.load(f))) is None:
             return await interaction.response.send_message('ファイルの読み込みに失敗しました。', ephemeral=True)
 
         logs = latest_log_data.get('logs')
@@ -137,8 +143,9 @@ async def cost_cancel(interaction: discord.Interaction, id: int):
                 continue
             if logs[i].get('is_cancelled'):
                 return await interaction.response.send_message('既にキャンセルされています。', ephemeral=True)
-            # amountを引き、キャンセル済に
-            fixed_log_data['pool'] -= logs[i].get('amount')
+            # 保留中でなければamountを引き、キャンセル
+            if not logs[i].get('is_pending'):
+                fixed_log_data['pool'] -= logs[i].get('amount')
             fixed_log_data['logs'][i]['is_cancelled'] = True
 
         with open(file_path, 'w') as f1:
@@ -156,7 +163,6 @@ async def cost_cancel(interaction: discord.Interaction, id: int):
 @bot.event
 async def on_message(message: discord.Message):
     pass
-
 
 if __name__ == '__main__':
     @bot.event
