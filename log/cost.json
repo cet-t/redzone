@@ -1,5 +1,5 @@
 {
-    "pool": 872427876,
+    "pool": 879427876,
     "logs": [
         {
             "id": 0,
@@ -1185,6 +1185,15 @@
             "note": "\u5ba2\u8239",
             "is_cancelled": false,
             "is_pending": true
+        },
+        {
+            "id": 148,
+            "datetime": "2024-07-15T00:56:49.401249",
+            "user_id": 283584931437871104,
+            "amount": 7000000,
+            "note": "\u5ba2\u8239",
+            "is_cancelled": false,
+            "is_pending": false
         }
     ]
 }

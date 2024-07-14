@@ -88,7 +88,7 @@ async def cost_production(interaction: discord.Interaction, amount: int, note: O
             amount=amount,
             note=note,
             is_cancelled=False,
-            is_pending=not is_boss
+            is_pending=False
         )
         logs.append(log)
         load_data = LogDict(pool=pool, logs=logs)
