@@ -1,5 +1,5 @@
 {
-    "pool": 876551756,
+    "pool": 872427876,
     "logs": [
         {
             "id": 0,
@@ -1103,7 +1103,7 @@
             "user_id": 283584931437871104,
             "amount": 0,
             "note": "test",
-            "is_cancelled": false
+            "is_cancelled": true
         },
         {
             "id": 138,
@@ -1111,6 +1111,70 @@
             "user_id": 283584931437871104,
             "amount": 0,
             "note": "test",
+            "is_cancelled": true
+        },
+        {
+            "id": 139,
+            "datetime": "2024-07-11T22:39:50.074984",
+            "user_id": 421317690418790409,
+            "amount": 4000000,
+            "note": "kyakusen",
+            "is_cancelled": false
+        },
+        {
+            "id": 140,
+            "datetime": "2024-07-13T03:39:26.817140",
+            "user_id": 283584931437871104,
+            "amount": 12372000,
+            "note": "\u5ba2\u8239",
+            "is_cancelled": false
+        },
+        {
+            "id": 141,
+            "datetime": "2024-07-13T03:39:50.401521",
+            "user_id": 283584931437871104,
+            "amount": 3884120,
+            "note": "\u5ba2\u8239",
+            "is_cancelled": false
+        },
+        {
+            "id": 142,
+            "datetime": "2024-07-13T22:39:00.593927",
+            "user_id": 421317690418790409,
+            "amount": -8230000,
+            "note": "\u30aa\u30a4\u30eb\u30ea\u30b0\u7f70\u91d1",
+            "is_cancelled": false
+        },
+        {
+            "id": 143,
+            "datetime": "2024-07-13T22:39:32.348636",
+            "user_id": 421317690418790409,
+            "amount": 32920000,
+            "note": "\u30aa\u30a4\u30eb\u30ea\u30b0",
+            "is_cancelled": false
+        },
+        {
+            "id": 144,
+            "datetime": "2024-07-13T22:40:35.656044",
+            "user_id": 421317690418790409,
+            "amount": -65840000,
+            "note": "\u30aa\u30a4\u30eb\u30ea\u30b0",
+            "is_cancelled": false
+        },
+        {
+            "id": 145,
+            "datetime": "2024-07-14T03:44:20.828130",
+            "user_id": 421317690418790409,
+            "amount": -8230000,
+            "note": "OILRIG",
+            "is_cancelled": false
+        },
+        {
+            "id": 146,
+            "datetime": "2024-07-14T03:44:45.874463",
+            "user_id": 421317690418790409,
+            "amount": 25000000,
+            "note": "\u30d7\u30fc\u30eb\u91d1",
             "is_cancelled": false
         }
     ]
