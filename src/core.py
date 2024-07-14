@@ -1,22 +1,22 @@
-﻿class Core:
+﻿import utility
+
+
+class Core:
     def __init__(self, token_name: str) -> None:
-        self.__token_var_name = token_name
-        self.__token: str = ''
+        self.__token_name = token_name
+        self.__token: str | None = None
 
     @property
     def token(self) -> str:
-        return self.__token
+        return self.__token if self.__token is not None else utility.String.empty
 
-    def load_environ(self) -> bool:
-        '''
-        トークンを読み込めたらtrue
-        '''
+    def load_token(self) -> bool:
         try:
-            import pyenv
-            self.__token = pyenv.environ[self.__token_var_name]
-        except KeyError:
             import os
             import dotenv
             dotenv.load_dotenv()
-            self.__token = os.environ[self.__token_var_name]
-        return self.__token is not None and len(self.__token) > 0
+            self.__token = os.environ.get(self.__token_name)
+        except KeyError:
+            import pyenv
+            self.__token = pyenv.environ.get(self.__token_name)
+        return self.__token is not None and self.__token is not None

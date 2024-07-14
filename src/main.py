@@ -10,7 +10,6 @@ from random import randint
 
 from data.member_data import *
 from data.heist_data import *
-# from pyenv import channel_ids, file_path, user_ids
 from parameter import Parameter, LogDict, LogDataDict
 import utility
 
@@ -186,4 +185,4 @@ if __name__ == '__main__':
 
     from core import Core
     core = Core('TOKEN')
-    bot.run(core.token) if core.load_environ() else exit(-1)
+    bot.run(core.token) if core.load_token() else exit(-1)
