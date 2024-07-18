@@ -1,7 +1,7 @@
 ﻿import asyncio
 from typing import Optional
 import discord
-from discord import app_commands
+from discord import Reaction, app_commands
 import json
 import os
 from datetime import datetime
@@ -11,6 +11,7 @@ from random import randint
 from data.member_data import *
 from data.heist_data import *
 from parameter import Parameter, LogDict, LogDataDict
+from pyenv import channel_ids, user_ids
 import utility
 
 bot = discord.Client(intents=discord.Intents.all())
@@ -25,9 +26,10 @@ async def ping(interaction: discord.Interaction):
 @tree.command()
 @app_commands.describe(count='count')
 async def dice(interaction: discord.Interaction, count: int = 1):
+    nko_pool = ['one', 'two', 'three', 'four', 'five', 'six']
     result: list[str] = []
     for _ in range(count):
-        result.append(f':{utility.Random.choice_item(["one", "two", "three", "four", "five", "six"])}:')
+        result.append(f':{utility.Random.choice_item(nko_pool)}:')
     await interaction.response.send_message(str.join(' ', result))
 
 
@@ -169,6 +171,56 @@ async def cost_cancel(interaction: discord.Interaction, id: int):
 
 @bot.event
 async def on_message(message: discord.Message):
+    pass
+
+
+@bot.event
+async def on_raw_reaction_add(payload: discord.RawReactionActionEvent):
+    # https://discordpy.readthedocs.io/ja/latest/api.html?highlight=on_raw_reaction_add#discord.on_raw_reaction_add
+
+    # 専用チャンネル外、指定のユーザー以外
+    if not payload.channel_id in channel_ids.values() or not payload.member.id in user_ids.values():  # type: ignore
+        return
+    # リアクションされたチャンネルを取得
+    channel = bot.get_channel(payload.channel_id)
+
+    # チャンネルからメッセージを取得
+    message = await channel.fetch_message(payload.message_id)  # type: ignore
+
+    if message is not None:
+        with open(Parameter.LOG_FILE_PATH, 'r') as fread:
+            # ファイルを読み込み変数に格納
+            log = LogDict(json.load(fread))
+            pool, logs = log.get(Parameter.Key.Log.POOL), log.get(Parameter.Key.Log.LOGS)
+            target_id = 0
+
+            for i in range(len(logs)):
+                # 対象のメッセージ、保留中
+                if logs[i].get(Parameter.Key.LogData.MESSAGE_ID) == message.id and logs[i].get(Parameter.Key.LogData.IS_PENDING):
+                    # 保留中フラグを解除
+                    logs[i][Parameter.Key.LogData.IS_PENDING] = False
+
+                    # チームプールにamountを足す
+                    pool += logs[i].get(Parameter.Key.LogData.AMOUNT)
+
+                    target_id = logs[i].get(Parameter.Key.LogData.ID)
+
+            with open(Parameter.LOG_FILE_PATH, 'w') as fwrite:
+                # 修正したデータを書き込み
+                json.dump(LogDict(pool=pool, logs=logs), fwrite, indent=4)
+        emb = discord.Embed(
+            title=f'{utility.Discord.inline_code_block(f"#{target_id}")} Accept',
+            description='',
+            colour=discord.Colour.green()
+        )
+        emb.add_field(name='承認されました', value='', inline=False)
+        emb.add_field(name=Parameter.Text.POOL, value=logs[i].get(Parameter.Key.Log.POOL), inline=False)
+        emb.set_footer(text=Parameter.Text.REDZONE)
+        await message.channel.send(embed=emb)
+
+
+@bot.event
+async def on_raw_reaction_remove(payload: discord.RawReactionActionEvent):
     pass
 
 if __name__ == '__main__':

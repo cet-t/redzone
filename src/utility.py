@@ -1,6 +1,6 @@
 ﻿from enum import Enum
 from random import randint
-from typing import Final, TypeVar, Optional
+from typing import Final, TypeVar
 
 import discord
 
@@ -12,8 +12,9 @@ T = TypeVar('T')
 class Discord:
 
     class Mention(Enum):
-        USER = 0
-        CHANNEL = 1
+        NONE = 0
+        USER = 1
+        CHANNEL = 2
 
     @staticmethod
     def code_block(text: str) -> str:
@@ -29,8 +30,16 @@ class Discord:
             return String.empty
 
         match mention_type:
-            case Discord.Mention.USER: return f'<@{id}>'
-            case Discord.Mention.CHANNEL: return f'<#{id}>'
+            case Discord.Mention.USER:
+                return f'<@{id}>'
+            case Discord.Mention.CHANNEL:
+                return f'<#{id}>'
+            case _:
+                return String.empty
+
+    @staticmethod
+    def get_message(bot: discord.Client, payload: discord.RawReactionActionEvent):
+        return await bot.get_channel(payload.channel_id).fetch_message(payload.message_id)  # type: ignore
 
 
 # endregion discord
@@ -55,8 +64,3 @@ class Random:
     @staticmethod
     def choice_item(list: list[T]) -> T:
         return list[Random.choice(list)]
-
-
-class FileMode:
-    READ = 'r'
-    CREATE_WRITE = 'x'
