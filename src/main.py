@@ -157,7 +157,7 @@ async def cost_cancel(interaction: discord.Interaction, id: int):
         with open(Parameter.LOG_FILE_PATH, 'w') as f1:
             json.dump(fixed_data, f1, indent=4)
         emb = discord.Embed(
-            title=f'{utility.Discord.inline_code_block(f"#{id}")} 取消',
+            title=f'{utility.Discord.inline_code_block(f"#{id}")} {Parameter.Text.CANCEL}',
             description='',
             colour=discord.Colour.light_gray()
         )
@@ -200,7 +200,6 @@ async def on_raw_reaction_add(payload: discord.RawReactionActionEvent):
                 # ファイルを読み込み変数に格納
                 log = LogDict(json.load(fread))
                 pool, logs = log.get(Parameter.Key.Log.POOL), log.get(Parameter.Key.Log.LOGS)
-                target_log_id = 0
 
                 for i in range(len(logs)):
                     # 対象のメッセージ、保留中
@@ -210,7 +209,6 @@ async def on_raw_reaction_add(payload: discord.RawReactionActionEvent):
                         # チームプールにamountを足す
                         pool += logs[i].get(Parameter.Key.LogData.AMOUNT)
                         # 対象のログのID
-                        target_log_id = logs[i].get(Parameter.Key.LogData.ID)
                         target_log_data = logs[i]
 
                 with open(Parameter.LOG_FILE_PATH, 'w') as fwrite:
