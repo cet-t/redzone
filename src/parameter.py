@@ -1,4 +1,5 @@
-﻿from enum import Enum
+﻿import datetime
+from enum import Enum
 from typing import Final, TypedDict, Optional
 import discord
 
@@ -35,8 +36,15 @@ class Parameter:
     }
 
     class Emoji:
-        ACCEPT = ['white_check_mark']
-        REJECT = ['']
+        ACCEPT = [
+            'white_check_mark',
+            'ballot_box_with_check'
+        ]
+        REJECT = [
+            'no_entry',
+            'x',
+            'no_entry_sign'
+        ]
 
     class Key:
         class LogData:
@@ -64,6 +72,10 @@ class Parameter:
         RECEIPT = 'Receipt'
         ACCEPT = 'Accepted'
         REJECT = 'Reject.'
+
+        @staticmethod
+        def footer() -> str:
+            return f'{(now := datetime.datetime.now()).year}/{now.month}/{now.day} {now.hour}:{now.minute}'
 
     class Embed:
         @staticmethod

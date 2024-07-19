@@ -1,7 +1,6 @@
 ﻿import asyncio
 from typing import Optional
 import discord
-from discord import Reaction, app_commands
 import json
 import os
 from datetime import datetime
@@ -11,12 +10,10 @@ from random import randint
 from data.member_data import *
 from data.heist_data import *
 from parameter import Parameter, LogDict, LogDataDict
-import parameter
-from pyenv import channel_ids
 import utility
 
 bot = discord.Client(intents=discord.Intents.all())
-tree = app_commands.CommandTree(bot)
+tree = discord.app_commands.CommandTree(bot)
 
 
 @tree.command()
@@ -25,7 +22,7 @@ async def ping(interaction: discord.Interaction):
 
 
 @tree.command()
-@app_commands.describe(count='count')
+@discord.app_commands.describe(count='count')
 async def dice(interaction: discord.Interaction, count: int = 1):
     pool = ['one', 'two', 'three', 'four', 'five', 'six']
     result: list[str] = []
@@ -53,7 +50,7 @@ async def disconnect(interaction: discord.Interaction):
 
 
 @tree.command(name='cost', description='経費精算, チームプール管理')
-@app_commands.describe(amount='金額', note='支払内容')
+@discord.app_commands.describe(amount='金額', note='支払内容')
 async def cost_production(interaction: discord.Interaction, amount: int, note: Optional[str] = None):
     # 専用チャンネル外で使用
     if not interaction.channel_id in Parameter.COST_CHANNEL_ID.values():
@@ -100,7 +97,7 @@ async def cost_production(interaction: discord.Interaction, amount: int, note: O
             if note is not None:
                 emb.add_field(name=Parameter.Text.NOTE, value=utility.Discord.code_block(note), inline=False)
             emb.add_field(name=Parameter.Text.POOL, value=utility.Discord.code_block(format(pool, ',')), inline=False)
-            emb.set_footer(text=Parameter.Text.REDZONE)
+            emb.set_footer(text=Parameter.Text.footer())
 
             await interaction.response.send_message(embed=emb)
 
@@ -113,7 +110,7 @@ def exists_log(logs: list[LogDataDict], log_id: int) -> bool:
 
 
 @tree.command(name='cancel', description='取消')
-@app_commands.describe(id='log_id')
+@discord.app_commands.describe(id='log_id')
 async def cost_cancel(interaction: discord.Interaction, id: int):
     if not interaction.channel_id in Parameter.COST_CHANNEL_ID.values():
         return await interaction.response.send_message(
@@ -124,19 +121,13 @@ async def cost_cancel(interaction: discord.Interaction, id: int):
     with open(Parameter.LOG_FILE_PATH, 'r') as f:
         # ログファイルの読み込み失敗
         if ((latest_data := LogDict(json.load(f)))) is None:
-            return await interaction.response.send_message(
-                embed=Parameter.Embed.error('ファイルの読み込みに失敗しました。'),
-                ephemeral=True
-            )
+            return await interaction.response.send_message(embed=Parameter.Embed.error('ファイルの読み込みに失敗しました。'), ephemeral=True)
 
         logs = latest_data.get(Parameter.Key.Log.LOGS)
 
         # 無効なID(0未満・ログ数以上、存在しないID)が入力されたらリターン
         if len(logs) <= id < 0 or not exists_log(logs, id):
-            return await interaction.response.send_message(
-                embed=Parameter.Embed.error(f'{utility.Discord.inline_code_block(f"#{id}")} is invalid ID.'),
-                ephemeral=True
-            )
+            return await interaction.response.send_message(embed=Parameter.Embed.error(f'{utility.Discord.inline_code_block(f"#{id}")} is invalid ID.'), ephemeral=True)
 
         fixed_data = latest_data
 
@@ -144,10 +135,7 @@ async def cost_cancel(interaction: discord.Interaction, id: int):
             if logs[i].get(Parameter.Key.LogData.ID) != id:
                 continue
             if logs[i].get(Parameter.Key.LogData.IS_CANCELLED):
-                return await interaction.response.send_message(
-                    embed=Parameter.Embed.warning('既にキャンセルされています。'),
-                    ephemeral=True
-                )
+                return await interaction.response.send_message(embed=Parameter.Embed.warning('既にキャンセルされています。'), ephemeral=True)
 
             # 保留中でなければamountを引き、キャンセル
             if not logs[i].get(Parameter.Key.LogData.IS_PENDING):
@@ -156,17 +144,9 @@ async def cost_cancel(interaction: discord.Interaction, id: int):
 
         with open(Parameter.LOG_FILE_PATH, 'w') as f1:
             json.dump(fixed_data, f1, indent=4)
-        emb = discord.Embed(
-            title=f'{utility.Discord.inline_code_block(f"#{id}")} {Parameter.Text.CANCEL}',
-            description='',
-            colour=discord.Colour.light_gray()
-        )
-        emb.add_field(
-            name=Parameter.Text.POOL,
-            value=utility.Discord.code_block(format(fixed_data.get(Parameter.Key.Log.POOL), ',')),
-            inline=False
-        )
-        emb.set_footer(text=Parameter.Text.REDZONE)
+        emb = discord.Embed(title=f'{utility.Discord.inline_code_block(f"#{id}")} {Parameter.Text.CANCEL}', description='', colour=discord.Colour.light_gray())
+        emb.add_field(name=Parameter.Text.POOL, value=utility.Discord.code_block(format(fixed_data.get(Parameter.Key.Log.POOL), ',')), inline=False)
+        emb.set_footer(text=Parameter.Text.footer())
         await interaction.response.send_message(embed=emb)
 
 
@@ -208,7 +188,7 @@ async def on_raw_reaction_add(payload: discord.RawReactionActionEvent):
                         logs[i][Parameter.Key.LogData.IS_PENDING] = False
                         # チームプールにamountを足す
                         pool += logs[i].get(Parameter.Key.LogData.AMOUNT)
-                        # 対象のログのID
+                        # 対象のログ
                         target_log_data = logs[i]
 
                 with open(Parameter.LOG_FILE_PATH, 'w') as fwrite:
@@ -234,7 +214,7 @@ async def on_raw_reaction_add(payload: discord.RawReactionActionEvent):
         # noteがあれば表示
         if utility.String.is_none_or_empty(note := target_log_data.get(Parameter.Key.LogData.NOTE)):
             emb.add_field(name=Parameter.Text.NOTE, value=utility.Discord.code_block(str(note)))
-        emb.set_footer(text=Parameter.Text.REDZONE)
+        emb.set_footer(text=Parameter.Text.footer())
         await message.channel.send(embed=emb)
 
 

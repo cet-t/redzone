@@ -60,9 +60,3 @@ class Random:
     @staticmethod
     def choice_item(list: list[T]) -> T:
         return list[Random.choice(list)]
-
-
-class FileMode:
-    READ = 'r'
-    READONLY = 'r'
-    WRITE = 'w'
