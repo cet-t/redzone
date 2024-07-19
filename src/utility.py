@@ -37,10 +37,6 @@ class Discord:
             case _:
                 return String.empty
 
-    @staticmethod
-    def get_message(bot: discord.Client, payload: discord.RawReactionActionEvent):
-        return await bot.get_channel(payload.channel_id).fetch_message(payload.message_id)  # type: ignore
-
 
 # endregion discord
 
@@ -50,7 +46,7 @@ class String:
     empty: Final[str] = ''
 
     @staticmethod
-    def is_null_or_empty(source: str) -> bool:
+    def is_none_or_empty(source: str | None) -> bool:
         return source is None or source == String.empty
 
 # endregion
@@ -64,3 +60,9 @@ class Random:
     @staticmethod
     def choice_item(list: list[T]) -> T:
         return list[Random.choice(list)]
+
+
+class FileMode:
+    READ = 'r'
+    READONLY = 'r'
+    WRITE = 'w'

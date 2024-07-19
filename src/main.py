@@ -11,7 +11,8 @@ from random import randint
 from data.member_data import *
 from data.heist_data import *
 from parameter import Parameter, LogDict, LogDataDict
-from pyenv import channel_ids, user_ids
+import parameter
+from pyenv import channel_ids
 import utility
 
 bot = discord.Client(intents=discord.Intents.all())
@@ -26,10 +27,10 @@ async def ping(interaction: discord.Interaction):
 @tree.command()
 @app_commands.describe(count='count')
 async def dice(interaction: discord.Interaction, count: int = 1):
-    nko_pool = ['one', 'two', 'three', 'four', 'five', 'six']
+    pool = ['one', 'two', 'three', 'four', 'five', 'six']
     result: list[str] = []
     for _ in range(count):
-        result.append(f':{utility.Random.choice_item(nko_pool)}:')
+        result.append(f':{utility.Random.choice_item(pool)}:')
     await interaction.response.send_message(str.join(' ', result))
 
 
@@ -179,42 +180,62 @@ async def on_raw_reaction_add(payload: discord.RawReactionActionEvent):
     # https://discordpy.readthedocs.io/ja/latest/api.html?highlight=on_raw_reaction_add#discord.on_raw_reaction_add
 
     # 専用チャンネル外、指定のユーザー以外
-    if not payload.channel_id in channel_ids.values() or not payload.member.id in user_ids.values():  # type: ignore
+    if not payload.channel_id in Parameter.COST_CHANNEL_ID.values() or not payload.member.id in Parameter.ADMIN_USER_ID.values():  # type: ignore
         return
-    # リアクションされたチャンネルを取得
-    channel = bot.get_channel(payload.channel_id)
 
-    # チャンネルからメッセージを取得
-    message = await channel.fetch_message(payload.message_id)  # type: ignore
+    is_accepted: Optional[bool] = None
+    target_log_data: Optional[LogDataDict] = None
 
-    if message is not None:
-        with open(Parameter.LOG_FILE_PATH, 'r') as fread:
-            # ファイルを読み込み変数に格納
-            log = LogDict(json.load(fread))
-            pool, logs = log.get(Parameter.Key.Log.POOL), log.get(Parameter.Key.Log.LOGS)
-            target_id = 0
+    # 承認
+    if payload.emoji.name in Parameter.Emoji.ACCEPT:
+        is_accepted = True
 
-            for i in range(len(logs)):
-                # 対象のメッセージ、保留中
-                if logs[i].get(Parameter.Key.LogData.MESSAGE_ID) == message.id and logs[i].get(Parameter.Key.LogData.IS_PENDING):
-                    # 保留中フラグを解除
-                    logs[i][Parameter.Key.LogData.IS_PENDING] = False
+        # リアクションされたチャンネルを取得
+        channel = bot.get_channel(payload.channel_id)
+        # チャンネルからメッセージを取得
+        message = await channel.fetch_message(payload.message_id)  # type: ignore
 
-                    # チームプールにamountを足す
-                    pool += logs[i].get(Parameter.Key.LogData.AMOUNT)
+        if message is not None:
+            with open(Parameter.LOG_FILE_PATH, 'r') as fread:
+                # ファイルを読み込み変数に格納
+                log = LogDict(json.load(fread))
+                pool, logs = log.get(Parameter.Key.Log.POOL), log.get(Parameter.Key.Log.LOGS)
+                target_log_id = 0
 
-                    target_id = logs[i].get(Parameter.Key.LogData.ID)
+                for i in range(len(logs)):
+                    # 対象のメッセージ、保留中
+                    if logs[i].get(Parameter.Key.LogData.MESSAGE_ID) == message.id and logs[i].get(Parameter.Key.LogData.IS_PENDING):
+                        # 保留中フラグを解除
+                        logs[i][Parameter.Key.LogData.IS_PENDING] = False
+                        # チームプールにamountを足す
+                        pool += logs[i].get(Parameter.Key.LogData.AMOUNT)
+                        # 対象のログのID
+                        target_log_id = logs[i].get(Parameter.Key.LogData.ID)
+                        target_log_data = logs[i]
 
-            with open(Parameter.LOG_FILE_PATH, 'w') as fwrite:
-                # 修正したデータを書き込み
-                json.dump(LogDict(pool=pool, logs=logs), fwrite, indent=4)
+                with open(Parameter.LOG_FILE_PATH, 'w') as fwrite:
+                    # 修正したデータを書き込み
+                    json.dump(LogDict(pool=pool, logs=logs), fwrite, indent=4)
+    # 拒否
+    elif payload.emoji.name in Parameter.Emoji.REJECT:
+        is_accepted = False
+    # 無効な絵文字
+    else:
+        return
+
+    # 承認/拒否された場合
+    if is_accepted is not None and target_log_data is not None:
         emb = discord.Embed(
-            title=f'{utility.Discord.inline_code_block(f"#{target_id}")} Accept',
+            title=f'{utility.Discord.inline_code_block(f"#{target_log_data.get(Parameter.Key.LogData.ID)}")} {Parameter.Text.ACCEPT if is_accepted else Parameter.Text.REJECT}',
             description='',
-            colour=discord.Colour.green()
+            colour=discord.Colour.green() if is_accepted else discord.Colour.red()
         )
-        emb.add_field(name='承認されました', value='', inline=False)
-        emb.add_field(name=Parameter.Text.POOL, value=logs[i].get(Parameter.Key.Log.POOL), inline=False)
+        # 承認された場合はチームプールを表示
+        if is_accepted:
+            emb.add_field(name=Parameter.Text.POOL, value=utility.Discord.code_block(format(target_log_data.get(Parameter.Key.Log.POOL), ',')), inline=False)
+        # noteがあれば表示
+        if utility.String.is_none_or_empty(note := target_log_data.get(Parameter.Key.LogData.NOTE)):
+            emb.add_field(name=Parameter.Text.NOTE, value=utility.Discord.code_block(str(note)))
         emb.set_footer(text=Parameter.Text.REDZONE)
         await message.channel.send(embed=emb)
 
@@ -234,5 +255,4 @@ if __name__ == '__main__':
         print('ok.')
 
     from core import Core
-    core = Core('TOKEN')
-    bot.run(core.token) if core.load_token() else exit(-1)
+    bot.run(core.token) if (core := Core(Parameter.TOKEN)).load_token() else exit(-1)

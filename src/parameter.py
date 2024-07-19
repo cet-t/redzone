@@ -22,6 +22,8 @@ class LogDict(TypedDict):
 
 
 class Parameter:
+    TOKEN = 'TOKEN'
+
     LOG_FILE_PATH = '../log/cost.json'
     COST_CHANNEL_ID: Final[dict[str, int]] = {
         'test': 1245694945323520031,
@@ -31,6 +33,10 @@ class Parameter:
         'boss': 421317690418790409,
         'dev': 283584931437871104
     }
+
+    class Emoji:
+        ACCEPT = ['white_check_mark']
+        REJECT = ['']
 
     class Key:
         class LogData:
@@ -56,6 +62,8 @@ class Parameter:
         PENDING = 'Pending...'
         CANCEL = 'Cancel'
         RECEIPT = 'Receipt'
+        ACCEPT = 'Accepted'
+        REJECT = 'Reject.'
 
     class Embed:
         @staticmethod
