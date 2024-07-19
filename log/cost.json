@@ -1,5 +1,5 @@
 {
-    "pool": 879427876,
+    "pool": 792432980,
     "logs": [
         {
             "id": 0,
@@ -1192,6 +1192,87 @@
             "user_id": 283584931437871104,
             "amount": 7000000,
             "note": "\u5ba2\u8239",
+            "is_cancelled": false,
+            "is_pending": false
+        },
+        {
+            "id": 149,
+            "datetime": "2024-07-15T01:55:37.975297",
+            "user_id": 450106920293105685,
+            "amount": 3486216,
+            "note": "\u5ba2\u8239",
+            "is_cancelled": false,
+            "is_pending": false
+        },
+        {
+            "id": 150,
+            "datetime": "2024-07-15T20:58:00.248922",
+            "user_id": 421317690418790409,
+            "amount": 4370000,
+            "note": "\u5ba2\u8239",
+            "is_cancelled": false,
+            "is_pending": false
+        },
+        {
+            "id": 151,
+            "datetime": "2024-07-15T20:58:43.844144",
+            "user_id": 421317690418790409,
+            "amount": -1000000,
+            "note": "\u30d8\u30ea\u4fee\u7406\u4ee3\u3000\u4e2d\u6751",
+            "is_cancelled": false,
+            "is_pending": false
+        },
+        {
+            "id": 152,
+            "datetime": "2024-07-15T21:41:49.389578",
+            "user_id": 421317690418790409,
+            "amount": 12460000,
+            "note": "oilrig",
+            "is_cancelled": false,
+            "is_pending": false
+        },
+        {
+            "id": 153,
+            "datetime": "2024-07-18T20:54:41.920727",
+            "user_id": 421317690418790409,
+            "amount": -24600000,
+            "note": "oilrig\u7f70\u91d1",
+            "is_cancelled": false,
+            "is_pending": false
+        },
+        {
+            "id": 154,
+            "datetime": "2024-07-18T20:59:09.708888",
+            "user_id": 421317690418790409,
+            "amount": -32800000,
+            "note": "oilrig\u7f70\u91d1",
+            "is_cancelled": false,
+            "is_pending": false
+        },
+        {
+            "id": 155,
+            "datetime": "2024-07-18T22:52:56.510876",
+            "user_id": 421317690418790409,
+            "amount": -60000000,
+            "note": "AK50",
+            "is_cancelled": false,
+            "is_pending": false
+        },
+        {
+            "id": 156,
+            "datetime": "2024-07-18T23:05:31.793396",
+            "user_id": 277781838062288896,
+            "amount": 11088888,
+            "note": "\u98db\u884c\u5834",
+            "is_cancelled": false,
+            "is_pending": false
+        },
+        {
+            "id": 157,
+            "datetime": "2024-07-20T00:53:34.704747",
+            "user_id": 283584931437871104,
+            "amount": 0,
+            "note": "test",
             "is_cancelled": false,
             "is_pending": false
         }
