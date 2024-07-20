@@ -12,9 +12,9 @@ T = TypeVar('T')
 class Discord:
 
     class Mention(Enum):
-        NONE = 0
-        USER = 1
-        CHANNEL = 2
+        none = 0
+        user = 1
+        channel = 2
 
     @staticmethod
     def code_block(text: str) -> str:
@@ -30,9 +30,9 @@ class Discord:
             return String.empty
 
         match mention_type:
-            case Discord.Mention.USER:
+            case Discord.Mention.user:
                 return f'<@{id}>'
-            case Discord.Mention.CHANNEL:
+            case Discord.Mention.channel:
                 return f'<#{id}>'
             case _:
                 return String.empty
