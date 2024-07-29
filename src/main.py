@@ -179,6 +179,7 @@ async def on_raw_reaction_add(payload: discord.RawReactionActionEvent):
         channel = bot.get_channel(payload.channel_id)
         # チャンネルからメッセージを取得
         message = await channel.fetch_message(payload.message_id)  # type: ignore
+        print('message', message is None)
 
         if message != None:
             with open(Parameter.LOG_FILE_PATH, 'r') as reader:
@@ -209,6 +210,7 @@ async def on_raw_reaction_add(payload: discord.RawReactionActionEvent):
 
     # 承認/拒否された場合
     if is_accepted != None and target_log_data != None:
+        print('承認通過')
         emb = discord.Embed(
             title=f'{utility.Discord.inline_code_block(f"#{target_log_data.get(Parameter.Key.LogData.ID)}")} {Parameter.Text.ACCEPT if is_accepted else Parameter.Text.REJECT}',
             description='',
