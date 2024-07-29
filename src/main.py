@@ -160,7 +160,8 @@ async def on_raw_reaction_add(payload: discord.RawReactionActionEvent):
     # https://discordpy.readthedocs.io/ja/latest/api.html?highlight=on_raw_reaction_add#discord.on_raw_reaction_add
 
     # 専用チャンネル外、指定のユーザー以外
-    if not payload.channel_id in Parameter.COST_CHANNEL_ID.values() or not payload.member.id in Parameter.ADMIN_USER_ID.values():  # type: ignore
+    if not (payload.channel_id in Parameter.COST_CHANNEL_ID.values()) or not (payload.member.id in Parameter.ADMIN_USER_ID.values()):  # type: ignore
+        print('専用チャンネル外')
         return
 
     is_accepted: Optional[bool] = None
@@ -175,11 +176,12 @@ async def on_raw_reaction_add(payload: discord.RawReactionActionEvent):
         # チャンネルからメッセージを取得
         message = await channel.fetch_message(payload.message_id)  # type: ignore
 
-        if message is not None:
-            with open(Parameter.LOG_FILE_PATH, 'r') as fread:
+        if message != None:
+            with open(Parameter.LOG_FILE_PATH, 'r') as reader:
                 # ファイルを読み込み変数に格納
-                log = LogDict(json.load(fread))
-                pool, logs = log.get(Parameter.Key.Log.POOL), log.get(Parameter.Key.Log.LOGS)
+                log = LogDict(json.load(reader))
+                pool = log.get(Parameter.Key.Log.POOL)
+                logs = log.get(Parameter.Key.Log.LOGS)
 
                 for i in range(len(logs)):
                     # 対象のメッセージ、保留中
@@ -191,9 +193,9 @@ async def on_raw_reaction_add(payload: discord.RawReactionActionEvent):
                         # 対象のログ
                         target_log_data = logs[i]
 
-                with open(Parameter.LOG_FILE_PATH, 'w') as fwrite:
+                with open(Parameter.LOG_FILE_PATH, 'w') as writer:
                     # 修正したデータを書き込み
-                    json.dump(LogDict(pool=pool, logs=logs), fwrite, indent=4)
+                    json.dump(LogDict(pool=pool, logs=logs), writer, indent=4)
     # 拒否
     elif payload.emoji.name in Parameter.Emoji.REJECT:
         is_accepted = False
@@ -202,7 +204,7 @@ async def on_raw_reaction_add(payload: discord.RawReactionActionEvent):
         return
 
     # 承認/拒否された場合
-    if is_accepted is not None and target_log_data is not None:
+    if is_accepted != None and target_log_data != None:
         emb = discord.Embed(
             title=f'{utility.Discord.inline_code_block(f"#{target_log_data.get(Parameter.Key.LogData.ID)}")} {Parameter.Text.ACCEPT if is_accepted else Parameter.Text.REJECT}',
             description='',
@@ -212,10 +214,12 @@ async def on_raw_reaction_add(payload: discord.RawReactionActionEvent):
         if is_accepted:
             emb.add_field(name=Parameter.Text.POOL, value=utility.Discord.code_block(format(target_log_data.get(Parameter.Key.Log.POOL), ',')), inline=False)
         # noteがあれば表示
-        if utility.String.is_none_or_empty(note := target_log_data.get(Parameter.Key.LogData.NOTE)):
+        if (note := target_log_data.get(Parameter.Key.LogData.NOTE)) != None:
             emb.add_field(name=Parameter.Text.NOTE, value=utility.Discord.code_block(str(note)))
         emb.set_footer(text=Parameter.Text.footer())
-        await message.channel.send(embed=emb)
+        # await message.channel.send(embed=emb)
+        await message.channel.send(f'id: {target_log_data.get(Parameter.Key.LogData.ID)}\npool: {target_log_data.get(Parameter.Key.Log.POOL)}')
+        print("send embed")
 
 
 @bot.event
