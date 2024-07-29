@@ -170,6 +170,7 @@ async def on_raw_reaction_add(payload: discord.RawReactionActionEvent):
 
     # 承認
     if payload.emoji.name in Parameter.Emoji.ACCEPT:
+        print('accepting')
         is_accepted = True
 
         # リアクションされたチャンネルを取得
