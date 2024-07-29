@@ -56,7 +56,7 @@ async def cost_production(interaction: discord.Interaction, amount: int, note: O
     if not interaction.channel_id in Parameter.COST_CHANNEL_ID.values():
         return await interaction.response.send_message(
             embed=Parameter.Embed.warning(
-                f'{utility.Discord.mention(Parameter.COST_CHANNEL_ID.get("redzone"), utility.Discord.Mention.CHANNEL)}で使用してください。'),
+                f'{utility.Discord.mention(Parameter.COST_CHANNEL_ID.get("redzone"), utility.Discord.Mention.channel)}で使用してください。'),
             ephemeral=True)
     # ファイルが存在しない
     if not os.path.exists(Parameter.LOG_FILE_PATH):
@@ -114,7 +114,7 @@ def exists_log(logs: list[LogDataDict], log_id: int) -> bool:
 async def cost_cancel(interaction: discord.Interaction, id: int):
     if not interaction.channel_id in Parameter.COST_CHANNEL_ID.values():
         return await interaction.response.send_message(
-            embed=Parameter.Embed.warning(f'{utility.Discord.mention(Parameter.COST_CHANNEL_ID.get("redzone"), utility.Discord.Mention.CHANNEL)}で使用してください。'),
+            embed=Parameter.Embed.warning(f'{utility.Discord.mention(Parameter.COST_CHANNEL_ID.get("redzone"), utility.Discord.Mention.channel)}で使用してください。'),
             ephemeral=True
         )
 

@@ -1,9 +1,6 @@
 ﻿import datetime
-from enum import Enum
 from typing import Final, TypedDict, Optional
 import discord
-
-import utility
 
 
 class LogDataDict(TypedDict):
