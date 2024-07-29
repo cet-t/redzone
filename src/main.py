@@ -167,6 +167,8 @@ async def on_raw_reaction_add(payload: discord.RawReactionActionEvent):
 
     is_accepted: Optional[bool] = None
     target_log_data: Optional[LogDataDict] = None
+    print('emoji.name:', payload.emoji.name)
+    print('emoji.id:', payload.emoji.id)
 
     # 承認
     if payload.emoji.name in Parameter.Emoji.ACCEPT:
