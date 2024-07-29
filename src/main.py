@@ -70,7 +70,7 @@ async def cost_production(interaction: discord.Interaction, amount: int, note: O
         logs = load_data.get(Parameter.Key.Log.LOGS)
 
         # ボスが使用した場合は直ぐ金額を反映
-        if is_boss := (interaction.user.id in Parameter.ADMIN_USER_ID.values()):
+        if is_boss := (interaction.user.id == Parameter.ADMIN_USER_ID.get('boss')):
             pool += amount
 
         log = LogDataDict(
