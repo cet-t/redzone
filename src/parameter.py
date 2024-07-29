@@ -34,8 +34,8 @@ class Parameter:
 
     class Emoji:
         ACCEPT = [
-            'white_check_mark',
-            'ballot_box_with_check'
+            '✅',
+            '☑️'
         ]
         REJECT = [
             'no_entry',
