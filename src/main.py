@@ -81,13 +81,12 @@ async def cost_production(interaction: discord.Interaction, amount: int, note: O
             note=note,
             is_cancelled=False,
             is_pending=not is_boss,
-            message_id=interaction.message.id if interaction.message.id != None else -1  # type: ignore
+            message_id=interaction.id
         )
         logs.append(log)
         load_data = LogDict(pool=pool, logs=logs)
 
         with open(Parameter.LOG_FILE_PATH, 'w') as ff:
-            json.dump(load_data, ff, indent=4)
             emb = discord.Embed(
                 title=utility.Discord.inline_code_block(f"#{log.get(Parameter.Key.LogData.ID)}") + (utility.String.empty if is_boss else Parameter.Text.PENDING),
                 description='',
