@@ -163,6 +163,7 @@ async def on_raw_reaction_add(payload: discord.RawReactionActionEvent):
     if not (payload.channel_id in Parameter.COST_CHANNEL_ID.values()) or not (payload.member.id in Parameter.ADMIN_USER_ID.values()):  # type: ignore
         print('専用チャンネル外')
         return
+    print('処理')
 
     is_accepted: Optional[bool] = None
     target_log_data: Optional[LogDataDict] = None
