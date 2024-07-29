@@ -49,6 +49,12 @@ async def disconnect(interaction: discord.Interaction):
     await asyncio.run(exit(0))
 
 
+@tree.command()
+@discord.app_commands.describe(member='メンバー')
+async def user_info(interaction: discord.Interaction, member: discord.Member):
+    pass
+
+
 @tree.command(name='cost', description='経費精算, チームプール管理')
 @discord.app_commands.describe(amount='金額', note='支払内容')
 async def cost_production(interaction: discord.Interaction, amount: int, note: Optional[str] = None):
