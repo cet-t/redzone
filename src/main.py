@@ -172,14 +172,12 @@ async def on_raw_reaction_add(payload: discord.RawReactionActionEvent):
 
     # 承認
     if payload.emoji.name in Parameter.Emoji.ACCEPT:
-        print('accepting')
         is_accepted = True
 
         # リアクションされたチャンネルを取得
         channel = bot.get_channel(payload.channel_id)
         # チャンネルからメッセージを取得
         message = await channel.fetch_message(payload.message_id)  # type: ignore
-        print('message', message is None)
 
         if message != None:
             with open(Parameter.LOG_FILE_PATH, 'r') as reader:
@@ -191,6 +189,7 @@ async def on_raw_reaction_add(payload: discord.RawReactionActionEvent):
                 for i in range(len(logs)):
                     # 対象のメッセージ、保留中
                     if logs[i].get(Parameter.Key.LogData.MESSAGE_ID) == message.id and logs[i].get(Parameter.Key.LogData.IS_PENDING):
+                        print('message ある')
                         # 保留中フラグを解除
                         logs[i][Parameter.Key.LogData.IS_PENDING] = False
                         # チームプールにamountを足す
