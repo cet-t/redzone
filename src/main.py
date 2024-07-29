@@ -196,6 +196,7 @@ async def on_raw_reaction_add(payload: discord.RawReactionActionEvent):
                         pool += logs[i].get(Parameter.Key.LogData.AMOUNT)
                         # 対象のログ
                         target_log_data = logs[i]
+                    print('logs.message.id:', logs[i].get(Parameter.Key.LogData.MESSAGE_ID), 'message.id:', message.id, 'log.is_pending:', logs[i].get(Parameter.Key.LogData.IS_PENDING))
 
                 with open(Parameter.LOG_FILE_PATH, 'w') as writer:
                     # 修正したデータを書き込み
