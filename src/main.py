@@ -73,7 +73,8 @@ async def cost_production(interaction: discord.Interaction, amount: int, note: O
         if is_boss := (interaction.user.id == Parameter.ADMIN_USER_ID.get('boss')):
             pool += amount
 
-        print('interaction.message:', interaction.message == None)
+        # LINK: https://stackoverflow.com/questions/73789968/how-to-get-the-interaction-response-message-object-discord-py
+        message = await interaction.original_response()
         log = LogDataDict(
             id=len(logs),
             datetime=datetime.now().isoformat(),
@@ -82,7 +83,7 @@ async def cost_production(interaction: discord.Interaction, amount: int, note: O
             note=note,
             is_cancelled=False,
             is_pending=not is_boss,
-            message_id=interaction.message.id if isinstance(interaction.message, discord.Message) else -1
+            message_id=message.id
         )
         logs.append(log)
         load_data = LogDict(pool=pool, logs=logs)
