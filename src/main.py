@@ -1,5 +1,6 @@
 ﻿import asyncio
 from typing import Optional
+from urllib import response
 import discord
 import json
 import os
@@ -74,7 +75,6 @@ async def cost_production(interaction: discord.Interaction, amount: int, note: O
             pool += amount
 
         # LINK: https://stackoverflow.com/questions/73789968/how-to-get-the-interaction-response-message-object-discord-py
-        message = await interaction.original_response()
         log = LogDataDict(
             id=len(logs),
             datetime=datetime.now().isoformat(),
@@ -83,25 +83,27 @@ async def cost_production(interaction: discord.Interaction, amount: int, note: O
             note=note,
             is_cancelled=False,
             is_pending=not is_boss,
-            message_id=message.id
+            message_id=-1
         )
-        logs.append(log)
-        load_data = LogDict(pool=pool, logs=logs)
+
+        emb = discord.Embed(
+            title=utility.Discord.inline_code_block(f"#{log.get(Parameter.Key.LogData.ID)}") + (utility.String.empty if is_boss else Parameter.Text.PENDING),
+            description='',
+            color=discord.Color.blue() if amount >= 0 else discord.Color.brand_red()
+        )
+        emb.add_field(name=Parameter.Text.AMOUNT, value=utility.Discord.code_block(format(amount, ',')), inline=False)
+        if note is not None:
+            emb.add_field(name=Parameter.Text.NOTE, value=utility.Discord.code_block(note), inline=False)
+        emb.add_field(name=Parameter.Text.POOL, value=utility.Discord.code_block(format(pool, ',')), inline=False)
+        emb.set_footer(text=Parameter.Text.footer())
+
+        await interaction.response.send_message(embed=emb)
+        message = await interaction.original_response()
 
         with open(Parameter.LOG_FILE_PATH, 'w') as ff:
-            json.dump(load_data, ff, indent=4)
-            emb = discord.Embed(
-                title=utility.Discord.inline_code_block(f"#{log.get(Parameter.Key.LogData.ID)}") + (utility.String.empty if is_boss else Parameter.Text.PENDING),
-                description='',
-                color=discord.Color.blue() if amount >= 0 else discord.Color.brand_red()
-            )
-            emb.add_field(name=Parameter.Text.AMOUNT, value=utility.Discord.code_block(format(amount, ',')), inline=False)
-            if note is not None:
-                emb.add_field(name=Parameter.Text.NOTE, value=utility.Discord.code_block(note), inline=False)
-            emb.add_field(name=Parameter.Text.POOL, value=utility.Discord.code_block(format(pool, ',')), inline=False)
-            emb.set_footer(text=Parameter.Text.footer())
-
-            await interaction.response.send_message(embed=emb)
+            log[Parameter.Key.LogData.MESSAGE_ID] = message.id
+            logs.append(log)
+            json.dump(LogDict(pool=pool, logs=logs), ff, indent=4)
 
 
 def exists_log(logs: list[LogDataDict], log_id: int) -> bool:
