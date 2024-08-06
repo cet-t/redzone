@@ -100,10 +100,10 @@ async def cost_production(interaction: discord.Interaction, amount: int, note: O
         await interaction.response.send_message(embed=emb)
         message = await interaction.original_response()
 
-        with open(Parameter.LOG_FILE_PATH, 'w') as ff:
+        with open(Parameter.LOG_FILE_PATH, 'w') as f:
             log[Parameter.Key.LogData.MESSAGE_ID] = message.id
             logs.append(log)
-            json.dump(LogDict(pool=pool, logs=logs), ff, indent=4)
+            json.dump(LogDict(pool=pool, logs=logs), f, indent=4)
 
 
 def exists_log(logs: list[LogDataDict], log_id: int) -> bool:
@@ -124,16 +124,16 @@ async def cost_cancel(interaction: discord.Interaction, id: int):
 
     with open(Parameter.LOG_FILE_PATH, 'r') as f:
         # ログファイルの読み込み失敗
-        if ((latest_data := LogDict(json.load(f)))) is None:
+        if ((read_data := LogDict(json.load(f)))) is None:
             return await interaction.response.send_message(embed=Parameter.Embed.error('ファイルの読み込みに失敗しました。'), ephemeral=True)
 
-        logs = latest_data.get(Parameter.Key.Log.LOGS)
+        logs = read_data.get(Parameter.Key.Log.LOGS)
 
         # 無効なID(0未満・ログ数以上、存在しないID)が入力されたらリターン
         if len(logs) <= id < 0 or not exists_log(logs, id):
             return await interaction.response.send_message(embed=Parameter.Embed.error(f'{utility.Discord.inline_code_block(f"#{id}")} is invalid ID.'), ephemeral=True)
 
-        fixed_data = latest_data
+        latest_data = read_data
 
         for i in range(len(logs)):
             if logs[i].get(Parameter.Key.LogData.ID) != id:
@@ -143,13 +143,13 @@ async def cost_cancel(interaction: discord.Interaction, id: int):
 
             # 保留中でなければamountを引き、キャンセル
             if not logs[i].get(Parameter.Key.LogData.IS_PENDING):
-                fixed_data[Parameter.Key.Log.POOL] -= logs[i].get(Parameter.Key.LogData.AMOUNT)
-            fixed_data[Parameter.Key.Log.LOGS][i][Parameter.Key.LogData.IS_CANCELLED] = True
+                latest_data[Parameter.Key.Log.POOL] -= logs[i].get(Parameter.Key.LogData.AMOUNT)
+            latest_data[Parameter.Key.Log.LOGS][i][Parameter.Key.LogData.IS_CANCELLED] = True
 
         with open(Parameter.LOG_FILE_PATH, 'w') as f1:
-            json.dump(fixed_data, f1, indent=4)
+            json.dump(latest_data, f1, indent=4)
         emb = discord.Embed(title=f'{utility.Discord.inline_code_block(f"#{id}")} {Parameter.Text.CANCEL}', description='', colour=discord.Colour.light_gray())
-        emb.add_field(name=Parameter.Text.POOL, value=utility.Discord.code_block(format(fixed_data.get(Parameter.Key.Log.POOL), ',')), inline=False)
+        emb.add_field(name=Parameter.Text.POOL, value=utility.Discord.code_block(format(latest_data.get(Parameter.Key.Log.POOL), ',')), inline=False)
         emb.set_footer(text=Parameter.Text.footer())
         await interaction.response.send_message(embed=emb)
 
